@@ -100,40 +100,29 @@ def delete_old_file(file_path):
 
 
 # -------------------- LOGIN --------------------
-@main_bp.route('/login', methods=['GET','POST'])
+@main_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-        
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Cari user di database
-        user = User.query.filter_by(username=username).first()
-        
-        # Jika user tidak ada, buat user admin default
-        if not user and username == 'admin' and password == 'admin':
-            user = User(username='admin', email='admin@daniar.com')
-            user.set_password('admin')
-            db.session.add(user)
-            db.session.commit()
-            flash("User admin berhasil dibuat dengan password default", "success")
-            # Load user lagi setelah dibuat
-            user = User.query.filter_by(username=username).first()
-        
-        # Verifikasi user dan password
-        if user and user.check_password(password):
-            login_user(user, remember=True)
-            session['logged_in'] = True
-            session['username'] = username
-            flash("Berhasil login", "success")
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
+        # SIMPLE AUTH - no database query
+        if username == 'admin' and password == 'password123':
+            session['user_id'] = 1
+            session['username'] = 'admin'
+            session['role'] = 'admin'
+            flash('Login berhasil!', 'success')
+            return redirect(url_for('main.dashboard'))
+        elif username == 'user' and password == 'user123':
+            session['user_id'] = 2
+            session['username'] = 'user'
+            session['role'] = 'user'
+            flash('Login berhasil!', 'success')
+            return redirect(url_for('main.dashboard'))
         else:
-            flash("Username atau password salah", "danger")
+            flash('Username atau password salah!', 'danger')
     
-    return render_template("login.html")
+    return render_template('login.html')
 
 @main_bp.route('/logout')
 @login_required
