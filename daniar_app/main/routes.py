@@ -105,19 +105,24 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = True if request.form.get('remember') else False
         
-        # SIMPLE AUTH - no database query
+        # SIMPLE AUTH - no database
         if username == 'admin' and password == 'password123':
             session['user_id'] = 1
             session['username'] = 'admin'
             session['role'] = 'admin'
+            session.permanent = True  # Important for production
             flash('Login berhasil!', 'success')
+            print(f"DEBUG: User {username} logged in, session: {dict(session)}")  # Debug
             return redirect(url_for('main.dashboard'))
         elif username == 'user' and password == 'user123':
             session['user_id'] = 2
-            session['username'] = 'user'
+            session['username'] = 'user' 
             session['role'] = 'user'
+            session.permanent = True  # Important for production
             flash('Login berhasil!', 'success')
+            print(f"DEBUG: User {username} logged in, session: {dict(session)}")  # Debug
             return redirect(url_for('main.dashboard'))
         else:
             flash('Username atau password salah!', 'danger')
