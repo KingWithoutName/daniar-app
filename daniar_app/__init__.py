@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 # from flask_migrate import Migrate #
-from flask_moment import Moment
+# from flask_moment import Moment #
 from flask_login import LoginManager
 from flask_mail import Mail 
 import os
@@ -16,7 +16,7 @@ from .helpers import format_currency, kategori_besar, filter_cashflow, hitung_pe
 
 db = SQLAlchemy()
 # migrate = Migrate() #
-moment = Moment()
+# moment = Moment() #
 login_manager = LoginManager()
 mail = Mail()
 
@@ -52,7 +52,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    moment.init_app(app)
+   # moment.init_app(app) #
     login_manager.init_app(app)
     mail.init_app(app)
     
