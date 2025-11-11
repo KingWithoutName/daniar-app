@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Faktur - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(247, 127, 0, 0.3);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-green), #00a085);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #0984e3, #74b9ff);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--danger-red), #e84393);
+        border: none;
+        border-radius: 6px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+
+    .item-row {
+        background: var(--light-bg);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-orange);
+        transition: all 0.3s ease;
+    }
+
+    .item-row:hover {
+        background: var(--light-orange);
+        transform: translateX(5px);
+    }
+
+    .section-title {
+        color: var(--dark-bg);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-orange);
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, var(--light-bg), var(--white));
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 2px dashed var(--primary-orange);
+    }
+
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--success-green);
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Animasi */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .sticky-actions {
+        position: sticky;
+        bottom: 0;
+        background: var(--white);
+        padding: 1.5rem 0;
+        border-top: 1px solid #e9ecef;
+        margin-top: 2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .action-buttons .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    /* Print Styles */
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .btn {
+            display: none !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        .total-section {
+            border: 2px solid #000 !important;
+        }
+    }
+
+    .share-modal .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .share-modal .modal-header {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        color: white;
+        border-radius: 16px 16px 0 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let itemCount = {{ faktur.items|length }};
+
+    function addItemRow() {
+        const itemList = document.getElementById('item-list');
+        const newRow = document.createElement('div');
+        newRow.className = 'row g-3 item-row animate-fade-in';
+        newRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" name="nama_barang[]" class="form-control" placeholder="Nama Barang" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" step="1" min="1" required onchange="calculateTotal()">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="harga[]" class="form-control" placeholder="Harga Satuan" step="0.01" min="0" required onchange="calculateTotal()">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="subtotal[]" class="form-control bg-light" placeholder="Subtotal" readonly>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm w-100 h-100 d-flex align-items-center justify-content-center" onclick="removeItemRow(this)" title="Hapus Item">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        itemList.appendChild(newRow);
+        itemCount++;
+        calculateTotal();
+    }
+
+    function removeItemRow(button) {
+        const row = button.closest('.item-row');
+        row.style.animation = 'fadeInUp 0.3s ease-out reverse';
+        setTimeout(() => {
+            row.remove();
+            itemCount--;
+            calculateTotal();
+        }, 300);
+    }
+
+    function calculateTotal() {
+        let grandTotal = 0;
+        const itemRows = document.querySelectorAll('.item-row');
+        
+        itemRows.forEach(row => {
+            const jumlah = parseFloat(row.querySelector('input[name="jumlah[]"]').value) || 0;
+            const harga = parseFloat(row.querySelector('input[name="harga[]"]').value) || 0;
+            const subtotal = jumlah * harga;
+            
+            row.querySelector('input[name="subtotal[]"]').value = formatRupiah(subtotal);
+            grandTotal += subtotal;
+        });
+
+        document.getElementById('total-amount').textContent = 'Rp ' + formatRupiah(grandTotal);
+        document.getElementById('total_harga').value = grandTotal;
+    }
+
+    function formatRupiah(amount) {
+        return Math.round(amount).toLocaleString('id-ID');
+    }
+
+    // Print Faktur
+    function printFaktur() {
+        window.print();
+    }
+
+    // Share via WhatsApp
+    function shareViaWhatsApp() {
+        const nomorFaktur = document.getElementById('nomor_faktur').value;
+        const namaPelanggan = document.getElementById('nama_pelanggan').value;
+        const totalHarga = document.getElementById('total_harga').value;
+        
+        const message = `Halo, berikut faktur dari PT. Daniar Furniture Art:\n\n` +
+                       `📋 *Faktur:* ${nomorFaktur}\n` +
+                       `👤 *Pelanggan:* ${namaPelanggan}\n` +
+                       `💰 *Total:* Rp ${formatRupiah(totalHarga)}\n\n` +
+                       `Terima kasih atas kepercayaan Anda!`;
+        
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+        
+        window.open(whatsappUrl, '_blank');
+    }
+
+    // Share via Email
+    function shareViaEmail() {
+        const nomorFaktur = document.getElementById('nomor_faktur').value;
+        const namaPelanggan = document.getElementById('nama_pelanggan').value;
+        const totalHarga = document.getElementById('total_harga').value;
+        
+        const subject = `Faktur ${nomorFaktur} - PT. Daniar Furniture Art`;
+        const body = `Kepada Yth. ${namaPelanggan},\n\n` +
+                    `Berikut kami kirimkan faktur dengan detail:\n\n` +
+                    `Nomor Faktur: ${nomorFaktur}\n` +
+                    `Total Amount: Rp ${formatRupiah(totalHarga)}\n\n` +
+                    `Terima kasih atas kerjasamanya.\n\n` +
+                    `Hormat kami,\n` +
+                    `PT. Daniar Furniture Art`;
+        
+        const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        window.location.href = mailtoUrl;
+    }
+
+    // Show share options modal
+    function showShareOptions() {
+        const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+        modal.show();
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotal();
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 animate-fade-in">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">✏️ Edit Faktur</h1>
+        <div class="action-buttons">
+            <button type="button" class="btn btn-success no-print" onclick="printFaktur()">
+                <i class="bi bi-printer"></i> Print
+            </button>
+            <button type="button" class="btn btn-info no-print" onclick="showShareOptions()">
+                <i class="bi bi-share"></i> Kirim Faktur
+            </button>
+            <a href="{{ url_for('main.faktur') }}" class="btn btn-secondary no-print">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Faktur Penjualan</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.edit_faktur', id=faktur.id) }}">
+                <!-- Informasi Faktur -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label for="nomor_faktur" class="form-label">Nomor Faktur</label>
+                        <input type="text" class="form-control" id="nomor_faktur" name="nomor_faktur" 
+                               value="{{ faktur.nomor_faktur }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="nama_pelanggan" class="form-label">Nama Pelanggan</label>
+                        <input type="text" class="form-control" id="nama_pelanggan" name="nama_pelanggan" 
+                               value="{{ faktur.nama_pelanggan }}" placeholder="Masukkan nama pelanggan" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tanggal_faktur" class="form-label">Tanggal Faktur</label>
+                        <input type="date" class="form-control" id="tanggal_faktur" name="tanggal_faktur" 
+                               value="{{ faktur.tanggal_faktur.strftime('%Y-%m-%d') if faktur.tanggal_faktur }}" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="alamat_pelanggan" class="form-label">Alamat Pelanggan</label>
+                        <textarea class="form-control" id="alamat_pelanggan" name="alamat_pelanggan" rows="2" 
+                                  placeholder="Alamat lengkap pelanggan">{{ faktur.alamat_pelanggan or '' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="keterangan" class="form-label">Keterangan</label>
+                        <textarea class="form-control" id="keterangan" name="keterangan" rows="2" 
+                                  placeholder="Catatan tambahan">{{ faktur.keterangan or '' }}</textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Detail Barang -->
+                <h5 class="section-title">📦 Detail Barang</h5>
+                
+                <div class="row g-3 mb-2">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Nama Barang</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Jumlah</label>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Harga Satuan</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Subtotal</label>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">Aksi</label>
+                    </div>
+                </div>
+
+                <div id="item-list">
+                    <!-- Existing items -->
+                    {% for item in faktur.items %}
+                    <div class="row g-3 item-row">
+                        <div class="col-md-5">
+                            <input type="text" name="nama_barang[]" class="form-control" value="{{ item.nama_barang }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="jumlah[]" class="form-control" value="{{ item.jumlah }}" step="1" min="1" required onchange="calculateTotal()">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="harga[]" class="form-control" value="{{ item.harga }}" step="0.01" min="0" required onchange="calculateTotal()">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="subtotal[]" class="form-control bg-light" value="{{ (item.jumlah * item.harga) }}" readonly>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-danger btn-sm w-100 h-100 d-flex align-items-center justify-content-center no-print" onclick="removeItemRow(this)" title="Hapus Item">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-end mt-3 no-print">
+                    <button type="button" class="btn btn-secondary" onclick="addItemRow()">
+                        <i class="bi bi-plus-circle"></i> Tambah Item Barang
+                    </button>
+                </div>
+
+                <!-- Total Section -->
+                <div class="total-section mt-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-0 fw-bold">TOTAL FAKTUR</h6>
+                            <small class="text-muted">Jumlah total dari semua item barang</small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="total-amount" id="total-amount">Rp {{ faktur.total_harga if faktur.total_harga else 0 }}</div>
+                            <input type="hidden" name="total_harga" id="total_harga" value="{{ faktur.total_harga or 0 }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="sticky-actions no-print">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('main.faktur') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Batal
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Update Faktur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Share Options Modal -->
+<div class="modal fade share-modal" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareModalLabel">
+                    <i class="bi bi-share-fill"></i> Kirim Faktur
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <p class="mb-4">Pilih metode untuk mengirim faktur kepada pelanggan:</p>
+                    
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-success btn-lg" onclick="shareViaWhatsApp()">
+                            <i class="bi bi-whatsapp"></i> Kirim via WhatsApp
+                        </button>
+                        
+                        <button type="button" class="btn btn-primary btn-lg" onclick="shareViaEmail()">
+                            <i class="bi bi-envelope"></i> Kirim via Email
+                        </button>
+                        
+                        <button type="button" class="btn btn-warning btn-lg" onclick="printFaktur()">
+                            <i class="bi bi-printer"></i> Print Faktur
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f77f00, #d35400);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+        .invoice-details {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f77f00;
+            color: white;
+        }
+        .total {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            color: #d35400;
+            margin-top: 15px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PT. Daniar Furniture Art</h1>
+        <p>Faktur Penjualan</p>
+    </div>
+    
+    <div class="content">
+        <p>Kepada Yth. <strong>{{ faktur.nama_pelanggan }}</strong>,</p>
+        
+        <p>Berikut kami kirimkan faktur penjualan dengan detail sebagai berikut:</p>
+        
+        <div class="invoice-details">
+            <p><strong>Nomor Faktur:</strong> {{ faktur.nomor_faktur }}</p>
+            <p><strong>Tanggal:</strong> {{ faktur.tanggal_faktur.strftime('%d %B %Y') }}</p>
+            <p><strong>Alamat:</strong> {{ faktur.alamat_pelanggan or '-' }}</p>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Barang</th>
+                    <th>Jumlah</th>
+                    <th>Harga Satuan</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in faktur.items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.nama_barang }}</td>
+                    <td>{{ item.jumlah }}</td>
+                    <td>Rp {{ "{:,.0f}".format(item.harga) }}</td>
+                    <td>Rp {{ "{:,.0f}".format(item.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total">
+            TOTAL: Rp {{ "{:,.0f}".format(faktur.total_harga) }}
+        </div>
+
+        {% if faktur.keterangan %}
+        <div class="notes">
+            <p><strong>Keterangan:</strong> {{ faktur.keterangan }}</p>
+        </div>
+        {% endif %}
+
+        <p>Terima kasih atas kepercayaan dan kerjasamanya.</p>
+        
+        <div class="footer">
+            <p><strong>{{ company_name }}</strong></p>
+            <p>{{ company_address }}</p>
+            <p>Email: {{ company_email }} | Telp: {{ company_phone }}</p>
+        </div>
+    </div>
+</body>
+</html>

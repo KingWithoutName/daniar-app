@@ -1,0 +1,733 @@
+<!-- FILE: templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+        --modal-blue: #2980b9;
+        --funding-orange: #f39c12;
+    }
+
+    body {
+        background: var(--light-bg);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi --- */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Kartu Statistik Utama --- */
+    .stat-card {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        border-left: 6px solid;
+        height: 120px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(247, 127, 0, 0.1), transparent);
+        border-radius: 50%;
+        transform: translate(20px, -20px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card .stat-icon {
+        font-size: 2.5rem;
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card .stat-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .stat-card .stat-info h5 {
+        color: #666;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .stat-info h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dark-bg);
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Warna Kartu */
+    .stat-card.balance { border-left-color: var(--primary-orange); }
+    .stat-card.balance .stat-icon { background: var(--primary-orange); }
+    
+    .stat-card.income { border-left-color: var(--success-green); }
+    .stat-card.income .stat-icon { background: var(--success-green); }
+    
+    .stat-card.expense { border-left-color: var(--danger-red); }
+    .stat-card.expense .stat-icon { background: var(--danger-red); }
+    
+    .stat-card.assets { border-left-color: #f39c12; }
+    .stat-card.assets .stat-icon { background: #f39c12; }
+
+    /* --- Kartu Ringkasan --- */
+    .summary-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .summary-card.modal { border-left-color: var(--modal-blue); }
+    .summary-card.pemasukan { border-left-color: var(--success-green); }
+    .summary-card.funding { border-left-color: var(--funding-orange); }
+    .summary-card.hpp { border-left-color: var(--danger-red); }
+    .summary-card.operasional { border-left-color: #e67e22; }
+    .summary-card.lain { border-left-color: #95a5a6; }
+
+    .summary-card h6 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        color: #666;
+    }
+
+    .summary-card h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* --- Tabel Aktivitas --- */
+    .activity-table {
+        font-size: 0.85rem;
+    }
+
+    .activity-table thead th {
+        border-top: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #666;
+        background-color: var(--light-bg);
+    }
+
+    .activity-table tbody tr:hover {
+        background-color: var(--light-orange);
+    }
+
+    .activity-table .badge {
+        font-size: 0.7rem;
+        padding: 0.3em 0.6em;
+    }
+
+    /* Badge warna */
+    .badge-modal { background-color: var(--modal-blue); color: white; }
+    .badge-pemasukan { background-color: var(--success-green); color: white; }
+    .badge-funding { background-color: var(--funding-orange); color: white; }
+    .badge-hpp { background-color: var(--danger-red); color: white; }
+    .badge-operasional { background-color: #e67e22; color: white; }
+    .badge-lain { background-color: #95a5a6; color: white; }
+    .badge-kasbon { background-color: #9b59b6; color: white; }
+
+    /* --- Gaya Card --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+        padding: 1rem 1.5rem;
+    }
+
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    /* Warna teks untuk nilai */
+    .text-modal {
+        color: var(--modal-blue) !important;
+        font-weight: 700;
+    }
+
+    .text-pemasukan {
+        color: var(--success-green) !important;
+        font-weight: 700;
+    }
+
+    .text-funding {
+        color: var(--funding-orange) !important;
+        font-weight: 700;
+    }
+
+    .text-expense {
+        color: var(--danger-red) !important;
+        font-weight: 700;
+    }
+
+    /* --- Layout --- */
+    .dashboard-row {
+        margin-bottom: 2rem;
+    }
+
+    /* Breakdown Pemasukan */
+    .breakdown-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .breakdown-item:last-child {
+        border-bottom: none;
+    }
+
+    /* --- User Info & Logout --- */
+    .user-info-container {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(247, 127, 0, 0.3);
+    }
+
+    .user-info-content {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .user-welcome {
+        flex-grow: 1;
+    }
+
+    .user-welcome h5 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .user-welcome p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+
+    .logout-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .logout-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+        .stat-card {
+            height: 100px;
+            padding: 1rem;
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            margin-right: 0.75rem;
+        }
+        
+        .stat-card .stat-info h3 {
+            font-size: 1.1rem;
+        }
+        
+        .summary-card {
+            padding: 0.75rem;
+        }
+        
+        .summary-card h4 {
+            font-size: 1rem;
+        }
+
+        .user-info-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .logout-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- User Info & Logout -->
+    <div class="user-info-container animate-fade-in">
+        <div class="user-info-content">
+            <div class="user-welcome">
+                <h5><i class="bi bi-person-circle me-2"></i>Selamat datang, <strong>{{ session.username }}</strong></h5>
+                <p><i class="bi bi-calendar-event me-1"></i>{{ moment().format('dddd, D MMMM YYYY') }}</p>
+            </div>
+            <a href="{{ url_for('main.logout') }}" class="logout-btn">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Dashboard</h1>
+        <p class="text-muted mb-0">Ringkasan Keuangan Perusahaan</p>
+    </div>
+
+    <!-- Grafik Utama -->
+    <div class="row dashboard-row">
+        <div class="col-12 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Grafik Keuangan Bulan Ini</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="financeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistik Utama -->
+    <div class="row dashboard-row">
+        <!-- Total Kas -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-card balance">
+                <div class="stat-icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Total Kas</h5>
+                    <h3 id="total-kas" class="money-large">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Pemasukan (Modal + Pemasukan + Funding) -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-card income">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Total Pemasukan</h5>
+                    <h3 id="pemasukan-bulan" class="money-large">0</h3>
+                    <small class="text-muted">
+                        Modal: {{ modal_bulan|currency }} | 
+                        Operasional: {{ pemasukan_operasional_bulan|currency }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pengeluaran -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.4s;">
+            <div class="stat-card expense">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-down-arrow"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Pengeluaran</h5>
+                    <h3 id="pengeluaran-bulan" class="money-large">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aset Tetap -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.5s;">
+            <div class="stat-card assets">
+                <div class="stat-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Aset Tetap</h5>
+                    <h3 id="total-aset" class="money-large">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail dan Aktivitas -->
+    <div class="row dashboard-row">
+        <!-- Breakdown Pemasukan & Pengeluaran -->
+        <div class="col-xl-6 col-lg-6 mb-4 animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Breakdown Keuangan Bulan Ini</h6>
+                </div>
+                <div class="card-body">
+                    <!-- PEMASUKAN -->
+                    <h6 class="text-success mb-3"><i class="bi bi-arrow-down-circle me-1"></i>PEMASUKAN</h6>
+                    
+                    <!-- Modal -->
+                    <div class="summary-card modal">
+                        <h6>Modal</h6>
+                        <h4 class="text-modal">{{ modal_bulan|currency }}</h4>
+                    </div>
+
+                    <!-- Pemasukan Operasional -->
+                    <div class="summary-card pemasukan">
+                        <h6>Pemasukan Operasional</h6>
+                        <h4 class="text-pemasukan">{{ pemasukan_operasional_bulan|currency }}</h4>
+                    </div>
+
+                    <!-- Funding -->
+                    {% if funding_bulan > 0 %}
+                    <div class="summary-card funding">
+                        <h6>Funding/Pinjaman</h6>
+                        <h4 class="text-funding">{{ funding_bulan|currency }}</h4>
+                    </div>
+                    {% endif %}
+
+                    <!-- Total Pemasukan -->
+                    <div class="summary-card" style="border-left-color: #27ae60; background-color: #f8fff9;">
+                        <h6><strong>Total Pemasukan</strong></h6>
+                        <h4 class="text-success"><strong>{{ total_pemasukan_bulan|currency }}</strong></h4>
+                    </div>
+
+                    <!-- PENGELUARAN -->
+                    <h6 class="text-danger mt-4 mb-3"><i class="bi bi-arrow-up-circle me-1"></i>PENGELUARAN</h6>
+
+                    <!-- HPP -->
+                    <div class="summary-card hpp">
+                        <h6>HPP</h6>
+                        <h4 class="text-expense">{{ hpp_bulan|currency }}</h4>
+                    </div>
+
+                    <!-- Operasional -->
+                    <div class="summary-card operasional">
+                        <h6>Operasional</h6>
+                        <h4 class="text-expense">{{ operasional_bulan|currency }}</h4>
+                    </div>
+
+                    <!-- Lain-lain -->
+                    <div class="summary-card lain">
+                        <h6>Lain-lain</h6>
+                        <h4 class="text-expense">{{ lain_bulan|currency }}</h4>
+                    </div>
+
+                    <!-- Total Pengeluaran -->
+                    <div class="summary-card" style="border-left-color: #c0392b; background-color: #fff8f8;">
+                        <h6><strong>Total Pengeluaran</strong></h6>
+                        <h4 class="text-danger"><strong>{{ total_pengeluaran_bulan|currency }}</strong></h4>
+                    </div>
+
+                    <!-- SALDO -->
+                    <div class="summary-card mt-3" style="border-left-color: var(--primary-orange); background-color: var(--light-orange);">
+                        <h6><strong>SALDO BULAN INI</strong></h6>
+                        <h4 class="text-primary"><strong>{{ (total_pemasukan_bulan - total_pengeluaran_bulan)|currency }}</strong></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aktivitas Terkini -->
+        <div class="col-xl-6 col-lg-6 mb-4 animate-fade-in" style="animation-delay: 0.7s;">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Aktivitas Terkini</h6>
+                    <span class="badge bg-primary">{{ recent_cashflows|length }} transaksi</span>
+                </div>
+                <div class="card-body">
+                    {% if recent_cashflows %}
+                    <div class="table-responsive activity-table">
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Keterangan</th>
+                                    <th>Jenis</th>
+                                    <th class="text-end">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for flow in recent_cashflows %}
+                                <tr>
+                                    <td>{{ flow.tanggal.strftime('%d/%m') }}</td>
+                                    <td class="text-truncate" style="max-width: 150px;" title="{{ flow.nama_barang }}">
+                                        {{ flow.nama_barang }}
+                                    </td>
+                                    <td>
+                                        {% if 'MODAL' in flow.jenis %}
+                                            <span class="badge badge-modal">Modal</span>
+                                        {% elif flow.jenis in ['PINJAMAN BANK', 'CASH INJECTION', 'DANA PINJAMAN', 'FUNDING INVESTOR', 'PINJAMAN / CASH INJECTION', 'FUNDING'] %}
+                                            <span class="badge badge-funding">Funding</span>
+                                        {% elif flow.jenis in ['PENJUALAN TUNAI', 'PENERIMAAN PIUTANG', 'PENDAPATAN BUNGA', 'PENGEMBALIAN PAJAK', 'PENERIMAAN TUNAI LAINNYA', 'BAYAR KASBON'] %}
+                                            <span class="badge badge-pemasukan">Pemasukan</span>
+                                        {% elif flow.jenis in ['BIAYA PRODUK / LAYANAN LANGSUNG', 'PAJAK PENGGAJIAN - LANGSUNG', 'GAJI - TKL', 'PERSEDIAAN'] %}
+                                            <span class="badge badge-hpp">HPP</span>
+                                        {% elif flow.jenis in ['GAJI KARYAWAN', 'IKLAN', 'BIAYA BANK', 'PELATIHAN', 'ASURANSI', 'INTERNET', 'LISENSI / IZIN', 'MAKANAN / HIBURAN', 'PERALATAN KANTOR', 'PAJAK GAJI', 'ONGKOS KIRIM', 'PENCETAKAN', 'KONSULTAN', 'OKUPANSI', 'BIAYA SEWA', 'SUBCONTRACTOR', 'TELEPON', 'TRANSPORTASI', 'PERJALANAN DINAS', 'BIAYA LISTRIK', 'PENGEMBALIAN WEB', 'DOMAIN WEB DAN HOSTING', 'BIAYA AIR', 'BIAYA SUBSCRIPTION', 'PAJAK PEMBELIAN'] %}
+                                            <span class="badge badge-operasional">Operasional</span>
+                                        {% elif flow.jenis == 'KASBON' or flow.jenis == 'BAYAR KASBON' %}
+                                            <span class="badge badge-kasbon">Kasbon</span>
+                                        {% else %}
+                                            <span class="badge badge-lain">Lain</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if 'MODAL' in flow.jenis or flow.jenis in ['PINJAMAN BANK', 'CASH INJECTION', 'DANA PINJAMAN', 'FUNDING INVESTOR', 'PINJAMAN / CASH INJECTION', 'FUNDING'] or flow.jenis in ['PENJUALAN TUNAI', 'PENERIMAAN PIUTANG', 'PENDAPATAN BUNGA', 'PENGEMBALIAN PAJAK', 'PENERIMAAN TUNAI LAINNYA', 'BAYAR KASBON'] %}
+                                            {% if 'MODAL' in flow.jenis %}
+                                                <span class="text-modal">+{{ flow.harga | currency }}</span>
+                                            {% elif flow.jenis in ['PINJAMAN BANK', 'CASH INJECTION', 'DANA PINJAMAN', 'FUNDING INVESTOR', 'PINJAMAN / CASH INJECTION', 'FUNDING'] %}
+                                                <span class="text-funding">+{{ flow.harga | currency }}</span>
+                                            {% else %}
+                                                <span class="text-pemasukan">+{{ flow.harga | currency }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-expense">-{{ flow.harga | currency }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                        <p>Belum ada aktivitas</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animasi angka
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        
+        const range = end - start;
+        const minTimer = 50;
+        let stepTime = Math.abs(Math.floor(duration / range));
+        stepTime = Math.max(stepTime, minTimer);
+        
+        let startTime = new Date().getTime();
+        let endTime = startTime + duration;
+        let timer;
+
+        function run() {
+            let now = new Date().getTime();
+            let remaining = Math.max((endTime - now) / duration, 0);
+            let value = Math.round(end - (remaining * range));
+            obj.textContent = 'Rp ' + value.toLocaleString('id-ID');
+            
+            if (value === end) {
+                clearInterval(timer);
+            }
+        }
+
+        timer = setInterval(run, stepTime);
+        run();
+    }
+
+    // Data dari Flask
+    const totalKas = {{ total_kas | tojson }};
+    const pemasukanBulan = {{ total_pemasukan_bulan | tojson }};
+    const pengeluaranBulan = {{ total_pengeluaran_bulan | tojson }};
+    const totalAset = {{ total_nilai_aset_tetap | tojson }};
+
+    // Jalankan animasi
+    animateValue("total-kas", 0, totalKas, 1000);
+    animateValue("pemasukan-bulan", 0, pemasukanBulan, 1000);
+    animateValue("pengeluaran-bulan", 0, pengeluaranBulan, 1000);
+    animateValue("total-aset", 0, totalAset, 1000);
+
+    // Grafik dengan kategori baru
+    const ctx = document.getElementById('financeChart').getContext('2d');
+    
+    // Data untuk chart - pemasukan dan pengeluaran terpisah
+    const pemasukanData = [
+        {{ modal_bulan | tojson }},
+        {{ pemasukan_operasional_bulan | tojson }},
+        {{ funding_bulan | tojson }}
+    ];
+
+    const pengeluaranData = [
+        {{ hpp_bulan | tojson }},
+        {{ operasional_bulan | tojson }},
+        {{ lain_bulan | tojson }}
+    ];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Modal', 'Pemasukan', 'Funding', 'HPP', 'Operasional', 'Lain-lain'],
+            datasets: [
+                {
+                    label: 'Pemasukan',
+                    data: [{{ modal_bulan }}, {{ pemasukan_operasional_bulan }}, {{ funding_bulan }}, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(41, 128, 185, 0.8)',    // Modal - Biru
+                        'rgba(0, 184, 148, 0.8)',     // Pemasukan - Hijau
+                        'rgba(243, 156, 18, 0.8)',    // Funding - Oranye
+                        'rgba(0, 0, 0, 0)',           // HPP - Transparan
+                        'rgba(0, 0, 0, 0)',           // Operasional - Transparan
+                        'rgba(0, 0, 0, 0)'            // Lain-lain - Transparan
+                    ],
+                    borderColor: [
+                        'rgba(41, 128, 185, 1)',
+                        'rgba(0, 184, 148, 1)',
+                        'rgba(243, 156, 18, 1)',
+                        'rgba(0, 0, 0, 0)',
+                        'rgba(0, 0, 0, 0)',
+                        'rgba(0, 0, 0, 0)'
+                    ],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: [0, 0, 0, {{ hpp_bulan }}, {{ operasional_bulan }}, {{ lain_bulan }}],
+                    backgroundColor: [
+                        'rgba(0, 0, 0, 0)',           // Modal - Transparan
+                        'rgba(0, 0, 0, 0)',           // Pemasukan - Transparan
+                        'rgba(0, 0, 0, 0)',           // Funding - Transparan
+                        'rgba(214, 48, 49, 0.8)',     // HPP - Merah
+                        'rgba(230, 126, 34, 0.8)',    // Operasional - Oranye tua
+                        'rgba(149, 165, 166, 0.8)'    // Lain-lain - Abu-abu
+                    ],
+                    borderColor: [
+                        'rgba(0, 0, 0, 0)',
+                        'rgba(0, 0, 0, 0)',
+                        'rgba(0, 0, 0, 0)',
+                        'rgba(214, 48, 49, 1)',
+                        'rgba(230, 126, 34, 1)',
+                        'rgba(149, 165, 166, 1)'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': Rp ' + context.parsed.y.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

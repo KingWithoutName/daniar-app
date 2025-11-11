@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Pengaturan{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="text-center mb-4">⚙️ Pengaturan</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="nama_perusahaan" class="form-label">Nama Perusahaan</label>
+                    <input type="text" class="form-control" name="nama_perusahaan" value="PT. Daniar Furniture Art" required>
+                </div>
+                <div class="mb-3">
+                    <label for="alamat_perusahaan" class="html-editor" name="alamat_perusahaan" rows="3" required">Jl. Contoh Alamat No. 123, Kota, Provinsi</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="telepon" class="form-label">Telepon</label>
+                    <input type="text" class="form-control" name="telepon" value="(021) 1234567" required>
+                </div>
+                <div class="mb-3">
+                    <label for="modal_awal_kas" class="form-label">Saldo Awal Kas</label>
+                    <input type="number" class="form-control" name="modal_awal_kas" value="10000000" required>
+                </div>
+                <div class="mb-3">
+                    <label for="modal_awal_modal" class="form-label">Modal Awal</label>
+                    <input type="number" class="form-control" name="modal_awal_modal" value="10000000" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

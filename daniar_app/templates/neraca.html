@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+{% block title %}Neraca - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan (Sama seperti Dashboard) --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+        --warning-orange: #f39c12;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi Fade In --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Gaya Card Umum --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+        flex-shrink: 0;
+    }
+    
+    .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+
+    /* --- Gaya Filter yang Lebih Presisi --- */
+    .filter-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid var(--primary-orange);
+    }
+
+    .filter-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .filter-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        background: var(--white);
+    }
+
+    .filter-select:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+
+    .filter-select option {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .filter-btn {
+        background: var(--primary-orange);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .filter-btn:hover {
+        background: var(--dark-orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(247, 127, 0, 0.3);
+    }
+
+    .filter-info {
+        background: var(--light-orange);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid var(--primary-orange);
+    }
+
+    .filter-info small {
+        color: var(--dark-bg);
+        font-weight: 500;
+    }
+
+    /* --- Gaya Tabel Neraca --- */
+    .neraca-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .neraca-table th, .neraca-table td {
+        border: none;
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+    }
+    
+    .neraca-table td:last-child {
+        text-align: right;
+        font-weight: 600;
+        font-family: 'Courier New', Courier, monospace;
+        white-space: nowrap;
+    }
+    
+    .neraca-table td:first-child {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .neraca-header {
+        background-color: var(--primary-orange);
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+
+    .neraca-header.kewajiban {
+        background-color: var(--warning-orange);
+    }
+    
+    .neraca-total {
+        font-weight: bold;
+        background-color: var(--light-orange);
+        border-top: 2px solid var(--primary-orange);
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+    
+    .neraca-total td {
+        background-color: var(--light-orange);
+        padding: 1rem 0.5rem;
+    }
+
+    /* Container untuk konten neraca dengan scroll */
+    .neraca-scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(100vh - 300px);
+        min-height: 400px;
+        position: relative;
+    }
+    
+    .neraca-content {
+        padding: 1rem;
+    }
+
+    /* Sticky headers */
+    .sticky-section-header {
+        position: sticky;
+        top: 0;
+        background: var(--white);
+        z-index: 5;
+        margin: 0 -1rem;
+        padding: 0.5rem 1rem;
+        border-bottom: 2px solid var(--primary-orange);
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--dark-bg);
+    }
+
+    .sticky-section-header.kewajiban {
+        border-bottom-color: var(--warning-orange);
+    }
+    
+    .account-section {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .account-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.25rem;
+    }
+
+    /* Custom scrollbar yang presisi */
+    .neraca-scroll-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .neraca-scroll-container::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+    
+    .neraca-scroll-container::-webkit-scrollbar-thumb {
+        background: var(--primary-orange);
+        border-radius: 4px;
+        border: 2px solid #f8f9fa;
+    }
+    
+    .neraca-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: var(--dark-orange);
+    }
+
+    /* Alert styling */
+    .alert-info {
+        border-left: 5px solid var(--primary-orange);
+        background-color: #f8f9fa;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .neraca-scroll-container {
+            max-height: calc(100vh - 350px);
+            min-height: 300px;
+        }
+        
+        .neraca-table {
+            font-size: 0.85rem;
+        }
+        
+        .neraca-table td:first-child {
+            max-width: 150px;
+        }
+        
+        .filter-card {
+            padding: 1rem;
+        }
+        
+        .filter-select {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+        }
+        
+        .filter-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .neraca-scroll-container {
+            max-height: calc(100vh - 400px);
+            min-height: 250px;
+        }
+        
+        .neraca-table td {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .neraca-content {
+            padding: 0.5rem;
+        }
+        
+        .filter-card {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        body * { 
+            visibility: hidden; 
+        }
+        
+        #print-area, #print-area * { 
+            visibility: visible; 
+        }
+        
+        #print-area { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+        }
+        
+        .card { 
+            box-shadow: none; 
+            border: 1px solid #dee2e6; 
+        }
+        
+        .no-print { 
+            display: none !important; 
+        }
+        
+        .neraca-scroll-container {
+            max-height: none !important;
+            overflow: visible !important;
+            min-height: auto !important;
+        }
+        
+        .neraca-total {
+            position: relative !important;
+        }
+    }
+
+    /* High precision scrolling fixes */
+    .neraca-scroll-container {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    .neraca-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    
+    .neraca-table tbody tr:hover {
+        background-color: rgba(247, 127, 0, 0.05);
+    }
+
+    /* Warna untuk nilai negatif */
+    .text-negative {
+        color: var(--danger-red);
+    }
+
+    /* Status filter aktif */
+    .filter-active {
+        background-color: var(--light-orange) !important;
+        border-color: var(--primary-orange) !important;
+    }
+
+    /* Grouping untuk filter */
+    .filter-group {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 no-print">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Neraca</h1>
+        <p class="text-muted mb-0">Per tanggal: {{ hari_ini }}</p>
+    </div>
+
+    <!-- Filter Periode yang Lebih Presisi -->
+    <div class="card shadow-sm mb-4 animate-fade-in no-print" style="animation-delay: 0.1s;">
+        <div class="card-body">
+            <div class="filter-card">
+                <form method="GET" class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <label for="filter_month" class="filter-label">
+                            <i class="bi bi-calendar-month me-1"></i>Pilih Bulan
+                        </label>
+                        <select name="month" id="filter_month" class="form-select filter-select {% if selected_month %}filter-active{% endif %}">
+                            <option value="">Semua Bulan</option>
+                            {% for val, name in months %}
+                            <option value="{{ val }}" 
+                                {% if selected_month == val|string %}selected{% endif %}>
+                                {{ name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="filter_year" class="filter-label">
+                            <i class="bi bi-calendar-year me-1"></i>Pilih Tahun
+                        </label>
+                        <select name="year" id="filter_year" class="form-select filter-select {% if selected_year %}filter-active{% endif %}">
+                            <option value="">Semua Tahun</option>
+                            {% for y in years %}
+                            <option value="{{ y }}" 
+                                {% if selected_year == y|string %}selected{% endif %}>
+                                {{ y }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="filter-label" style="visibility: hidden;">Aksi</label>
+                        <button type="submit" class="btn btn-primary w-100 filter-btn">
+                            <i class="bi bi-funnel me-1"></i> Terapkan
+                        </button>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="filter-label" style="visibility: hidden;">Reset</label>
+                        <a href="{{ url_for('main.neraca') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Info Filter Aktif -->
+                {% if selected_month or selected_year %}
+                <div class="filter-info mt-3">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Filter Aktif:</strong>
+                        {% if selected_month %}
+                            {% set month_name = months[selected_month-1][1] if selected_month <= months|length else 'Tidak valid' %}
+                            Bulan: {{ month_name }}
+                        {% endif %}
+                        {% if selected_year %}
+                            {% if selected_month %} - {% endif %}Tahun: {{ selected_year }}
+                        {% endif %}
+                    </small>
+                </div>
+                {% else %}
+                <div class="filter-info mt-3">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Status:</strong> Menampilkan semua data neraca
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="print-area">
+        <div class="row">
+            <!-- Aset -->
+            <div class="col-md-6 mb-3 mb-md-0 animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header neraca-header py-3">
+                        <h5 class="mb-0">ASET</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="neraca-scroll-container">
+                            <div class="neraca-content">
+                                {% for kategori, items in neraca_data.aset.items() if kategori != 'Total Aset' %}
+                                <div class="account-section">
+                                    <div class="sticky-section-header">{{ kategori }}</div>
+                                    <table class="neraca-table mt-2">
+                                        <tbody>
+                                            {% for nama, nilai in items.items() %}
+                                            <tr>
+                                                <td>{{ nama }}</td>
+                                                <td>{{ nilai|currency }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endfor %}
+                                
+                                <!-- Total Aset -->
+                                <div class="account-section mt-4">
+                                    <table class="neraca-table">
+                                        <tfoot>
+                                            <tr class="neraca-total">
+                                                <td><strong>Total Aset</strong></td>
+                                                <td><strong>{{ neraca_data.aset['Total Aset']|currency }}</strong></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kewajiban & Ekuitas -->
+            <div class="col-md-6 animate-fade-in" style="animation-delay: 0.3s;">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header neraca-header py-3">
+                        <h5 class="mb-0">KEWAJIBAN & EKUITAS</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="neraca-scroll-container">
+                            <div class="neraca-content">
+                                <!-- Kewajiban -->
+                                {% if 'Kewajiban' in neraca_data.kewajiban_dan_ekuitas and neraca_data.kewajiban_dan_ekuitas['Kewajiban'] %}
+                                <div class="account-section">
+                                    <div class="sticky-section-header kewajiban">KEWAJIBAN</div>
+                                    <table class="neraca-table mt-2">
+                                        <tbody>
+                                            {% for nama, nilai in neraca_data.kewajiban_dan_ekuitas['Kewajiban'].items() %}
+                                            <tr>
+                                                <td>{{ nama }}</td>
+                                                <td>{{ nilai|currency }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+
+                                <!-- Ekuitas -->
+                                {% if 'Ekuitas' in neraca_data.kewajiban_dan_ekuitas %}
+                                <div class="account-section">
+                                    <div class="sticky-section-header">EKUITAS</div>
+                                    <table class="neraca-table mt-2">
+                                        <tbody>
+                                            {% for nama, nilai in neraca_data.kewajiban_dan_ekuitas['Ekuitas'].items() %}
+                                            <tr>
+                                                <td>{{ nama }}</td>
+                                                <td>
+                                                    {% if nilai < 0 or 'Prive' in nama %}
+                                                        <span class="text-negative">({{ (-nilai)|currency }})</span>
+                                                    {% else %}
+                                                        {{ nilai|currency }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Total Kewajiban & Ekuitas -->
+                                <div class="account-section mt-4">
+                                    <table class="neraca-table">
+                                        <tfoot>
+                                            {% if 'Total Kewajiban & Ekuitas' in neraca_data.kewajiban_dan_ekuitas %}
+                                            <tr class="neraca-total">
+                                                <td><strong>Total Kewajiban & Ekuitas</strong></td>
+                                                <td><strong>{{ neraca_data.kewajiban_dan_ekuitas['Total Kewajiban & Ekuitas']|currency }}</strong></td>
+                                            </tr>
+                                            {% else %}
+                                            <tr class="neraca-total">
+                                                <td><strong>Total Ekuitas</strong></td>
+                                                <td><strong>{{ neraca_data.kewajiban_dan_ekuitas['Total Ekuitas']|currency }}</strong></td>
+                                            </tr>
+                                            {% endif %}
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pemeriksaan Neraca -->
+    <div class="alert alert-info mt-4 animate-fade-in no-print" style="animation-delay: 0.4s;" role="alert">
+        <h5 class="alert-heading mb-3">Pemeriksaan Keseimbangan</h5>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span><strong>Total Aset:</strong> {{ neraca_data.aset['Total Aset']|currency }}</span>
+            <span class="mx-3">VS</span>
+            <span>
+                <strong>Total Kewajiban & Ekuitas:</strong> 
+                {% if 'Total Kewajiban & Ekuitas' in neraca_data.kewajiban_dan_ekuitas %}
+                    {{ neraca_data.kewajiban_dan_ekuitas['Total Kewajiban & Ekuitas']|currency }}
+                {% else %}
+                    {{ neraca_data.kewajiban_dan_ekuitas['Total Ekuitas']|currency }}
+                {% endif %}
+            </span>
+        </div>
+        {% set total_kanan = neraca_data.kewajiban_dan_ekuitas['Total Kewajiban & Ekuitas'] if 'Total Kewajiban & Ekuitas' in neraca_data.kewajiban_dan_ekuitas else neraca_data.kewajiban_dan_ekuitas['Total Ekuitas'] %}
+        {% if neraca_data.aset['Total Aset'] == total_kanan %}
+            <div class="alert alert-success mb-0 mt-2">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Neraca SEIMBANG - Sistem akuntansi berjalan dengan baik</strong>
+            </div>
+        {% else %}
+            <div class="alert alert-danger mb-0 mt-2">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>PERINGATAN: Neraca TIDAK SEIMBANG! Periksa kembali entri data.</strong>
+                <br>
+                <small class="mt-1">
+                    Selisih: {{ (neraca_data.aset['Total Aset'] - total_kanan)|currency }}
+                </small>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tombol Kembali & Print -->
+    <div class="d-flex justify-content-center gap-3 mt-4 no-print animate-fade-in" style="animation-delay: 0.5s;">
+        <a href="{{ url_for('main.cashflow') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Kembali ke Cashflow
+        </a>
+        <button class="btn btn-success" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>Print Laporan
+        </button>
+    </div>
+</div>
+{% endblock %}

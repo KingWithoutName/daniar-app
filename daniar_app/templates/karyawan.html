@@ -1,0 +1,762 @@
+<!-- FILE: templates/karyawan.html -->
+{% extends "base.html" %}
+{% block title %}Data Karyawan - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Modern Theme with Orange Accents --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --orange-gradient: linear-gradient(135deg, #f77f00 0%, #d35400 100%);
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --info-blue: #3498db;
+        --warning-yellow: #f39c12;
+        --danger-red: #e74c3c;
+    }
+
+    body {
+        background: var(--light-bg);
+        color: var(--dark-bg);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Card Styling */
+    .card-modern {
+        background: var(--white);
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+
+    .card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header-modern {
+        background: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 1.5rem 2rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+
+    .card-body-padded {
+        padding: 2rem;
+    }
+
+    /* Summary Cards */
+    .summary-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+        height: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .summary-card.total { border-left-color: var(--primary-orange); }
+    .summary-card.gaji { border-left-color: var(--success-green); }
+    .summary-card.jabatan { border-left-color: var(--info-blue); }
+    .summary-card.baru { border-left-color: var(--warning-yellow); }
+
+    /* Buttons */
+    .btn-modern {
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary-modern {
+        background: var(--orange-gradient);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(247, 127, 0, 0.3);
+        color: white;
+    }
+
+    /* Table Styling */
+    .table-modern {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .table-modern thead th {
+        background-color: var(--light-bg);
+        border: none;
+        padding: 1rem 1.25rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table-modern tbody td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #f1f3f4;
+        vertical-align: middle;
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: var(--light-orange);
+    }
+
+    /* Employee Avatar */
+    .employee-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        background: var(--orange-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .employee-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    /* Status Badges */
+    .badge-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .badge-tetap { background-color: var(--success-green); color: white; }
+    .badge-kontrak { background-color: var(--info-blue); color: white; }
+    .badge-harian { background-color: var(--warning-yellow); color: white; }
+    .badge-percobaan { background-color: #95a5a6; color: white; }
+
+    /* Action Buttons */
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+        color: white;
+        font-size: 0.8rem;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-view { background: var(--info-blue); }
+    .btn-edit { background: var(--warning-yellow); }
+    .btn-slip { background: var(--success-green); }
+    .btn-delete { background: var(--danger-red); }
+
+    /* Quick Actions */
+    .quick-action-btn {
+        background: var(--white);
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none !important;
+        color: var(--dark-bg);
+        display: block;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-orange);
+        color: var(--dark-bg);
+        text-decoration: none;
+    }
+
+    .quick-action-btn i {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        color: var(--primary-orange);
+        display: block;
+    }
+
+    /* Money Format */
+    .money-format {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: var(--success-green);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--primary-orange);
+        opacity: 0.7;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title h1 {
+        color: var(--dark-bg);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-title p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .card-body-padded {
+            padding: 1.5rem;
+        }
+        
+        .table-modern {
+            font-size: 0.9rem;
+        }
+        
+        .table-modern thead th,
+        .table-modern tbody td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.7rem;
+            margin: 0 1px;
+        }
+        
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 0.9rem;
+        }
+        
+        .summary-card {
+            padding: 1.25rem;
+        }
+        
+        .quick-action-btn {
+            padding: 1.25rem;
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-header-modern {
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.75rem;
+        }
+        
+        .btn-modern {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Utility Classes */
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="page-title">
+                <h1 class="h3 mb-2">
+                    <i class="fas fa-users text-primary me-2"></i>
+                    Data Karyawan
+                </h1>
+                <p class="text-muted mb-0">Kelola data karyawan PT. Daniar Furniture Art</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary-modern btn-modern" data-toggle="modal" data-target="#tambahKaryawanModal">
+                   <a href="{{ url_for('main.tambah_karyawan') }}" class="btn btn-primary-modern btn-modern">
+                   <i class="fas fa-plus me-1"></i>Tambah Karyawan
+                    </a>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="summary-card total">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Karyawan</h6>
+                        <h3 class="mb-2" style="color: var(--dark-bg);">{{ karyawan|length }}</h3>
+                        <small class="text-success">
+                            <i class="fas fa-chart-line me-1"></i>Active Employees
+                        </small>
+                    </div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="summary-card gaji">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Pengeluaran</h6>
+                        <h4 class="mb-2" style="color: var(--dark-bg);">
+                            {% set total_gaji = karyawan|sum(attribute='gaji_pokok') %}
+                            Rp {{ "{:,.0f}".format(total_gaji) }}
+                        </h4>
+                        <small class="text-info">
+                            <i class="fas fa-calendar me-1"></i>Per Bulan
+                        </small>
+                    </div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="summary-card jabatan">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Jabatan Terbanyak</h6>
+                        <h5 class="mb-2 text-truncate" style="color: var(--dark-bg); max-width: 120px;">
+                            {% set jabatan_count = {} %}
+                            {% for k in karyawan %}
+                                {% set _ = jabatan_count.update({k.jabatan: jabatan_count.get(k.jabatan, 0) + 1}) %}
+                            {% endfor %}
+                            {% if jabatan_count %}
+                                {{ (jabatan_count|dictsort(by='value')|last|first) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h5>
+                        <small class="text-success">
+                            <i class="fas fa-briefcase me-1"></i>Most Common
+                        </small>
+                    </div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-briefcase fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.4s;">
+            <div class="summary-card baru">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Karyawan Baru</h6>
+                        <h3 class="mb-2" style="color: var(--dark-bg);">
+                            {% set today = now().date() %}
+                            {% set first_day_of_month = today.replace(day=1) %}
+                            {% set new_employees = karyawan|selectattr('tanggal_masuk', '>=', first_day_of_month)|list %}
+                            {{ new_employees|length }}
+                        </h3>
+                        <small class="text-warning">
+                            <i class="fas fa-user-clock me-1"></i>Bulan Ini
+                        </small>
+                    </div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-user-plus fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card-modern animate-fade-in" style="animation-delay: 0.5s;">
+        <div class="card-header-modern">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Daftar Karyawan
+                </h6>
+                <span class="badge bg-light text-dark">
+                    {{ karyawan|length }} Records
+                </span>
+            </div>
+        </div>
+        <div class="card-body-padded p-0">
+            {% if karyawan %}
+            <div class="table-responsive">
+                <table class="table table-modern mb-0">
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="25%">Karyawan</th>
+                            <th width="15%">Jabatan</th>
+                            <th width="12%">Status</th>
+                            <th width="15%">Gaji Pokok</th>
+                            <th width="13%">Tanggal Masuk</th>
+                            <th width="10%">Masa Kerja</th>
+                            <th width="5%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in karyawan %}
+                        <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('main.detail_karyawan', id=k.id) }}'">
+                            <td class="font-weight-bold text-center">{{ loop.index }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="employee-avatar me-3">
+                                        {% if k.foto_profil %}
+                                            <img src="{{ url_for('static', filename='uploads/profiles/' + k.foto_profil) }}" 
+                                                 alt="{{ k.nama }}" 
+                                                 onerror="this.style.display='none'; this.parentElement.innerHTML='{{ k.nama.split()[-1][0] if k.nama and k.nama.split() else '?' }}';">
+                                        {% else %}
+                                            {{ k.nama.split()[-1][0] if k.nama and k.nama.split() else '?' }}
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold text-truncate" style="max-width: 150px;">
+                                            {{ k.nama }}
+                                        </div>
+                                        <div class="small text-muted">
+                                            <i class="fas fa-id-card me-1"></i>{{ k.nik or 'NIK: -' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="font-weight-bold text-truncate d-inline-block" style="max-width: 100px;">{{ k.jabatan }}</span>
+                            </td>
+                            <td>
+                                {% if k.status == 'TETAP' %}
+                                    <span class="badge-modern badge-tetap">{{ k.status }}</span>
+                                {% elif k.status == 'KONTRAK' %}
+                                    <span class="badge-modern badge-kontrak">{{ k.status }}</span>
+                                {% elif k.status == 'HARIAN' %}
+                                    <span class="badge-modern badge-harian">{{ k.status }}</span>
+                                {% elif k.status == 'PERCOBAAN' %}
+                                    <span class="badge-modern badge-percobaan">{{ k.status }}</span>
+                                {% else %}
+                                    <span class="badge-modern badge-tetap">{{ k.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="money-format">
+                                    Rp {{ "{:,.0f}".format(k.gaji_pokok) }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-weight-bold">
+                                    {{ k.tanggal_masuk.strftime('%d/%m/%Y') }}
+                                </span>
+                            </td>
+                            <td>
+                                {% set masa_kerja = (now().date() - k.tanggal_masuk).days %}
+                                {% set tahun = masa_kerja // 365 %}
+                                {% set bulan = (masa_kerja % 365) // 30 %}
+                                <small class="text-muted font-weight-bold">
+                                    {% if tahun > 0 %}
+                                        {{ tahun }}<small>th</small> {{ bulan }}<small>bl</small>
+                                    {% else %}
+                                        {{ bulan }}<small>bl</small>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center" onclick="event.stopPropagation()">
+                                    <a href="{{ url_for('main.detail_karyawan', id=k.id) }}" class="action-btn btn-view" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.edit_karyawan', id=k.id) }}" class="action-btn btn-edit" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.slip_gaji_karyawan', id=k.id) }}" class="action-btn btn-slip" title="Slip Gaji">
+                                        <i class="fas fa-receipt"></i>
+                                    </a>
+                                    <form action="{{ url_for('main.hapus_karyawan', id=k.id) }}" method="post" class="d-inline" onsubmit="return confirmDelete(event)">
+                                        <button type="submit" class="action-btn btn-delete" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h4 class="text-muted mb-3">Belum Ada Data Karyawan</h4>
+                <p class="text-muted mb-4">Mulai bangun tim Anda dengan menambahkan karyawan pertama</p>
+                <button type="button" class="btn btn-primary-modern btn-modern" data-toggle="modal" data-target="#tambahKaryawanModal">
+                    <i class="fas fa-user-plus me-2"></i>Tambah Karyawan Pertama
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if karyawan %}
+    <div class="row mt-4 animate-fade-in" style="animation-delay: 0.6s;">
+        <div class="col-12">
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Aksi Cepat
+                    </h6>
+                </div>
+                <div class="card-body-padded">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <button type="button" class="quick-action-btn" data-toggle="modal" data-target="#tambahKaryawanModal">
+                                <i class="fas fa-user-plus"></i>
+                                <h6 class="mb-1 mt-2">Tambah Karyawan</h6>
+                                <small class="text-muted">Tambah data karyawan baru</small>
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('main.export_karyawan_excel') }}" class="quick-action-btn">
+                                <i class="fas fa-file-excel"></i>
+                                <h6 class="mb-1 mt-2">Export Excel</h6>
+                                <small class="text-muted">Download data ke Excel</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('main.cetak_semua_slip_gaji') }}" class="quick-action-btn">
+                                <i class="fas fa-print"></i>
+                                <h6 class="mb-1 mt-2">Cetak Slip Gaji</h6>
+                                <small class="text-muted">Print semua slip gaji</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('main.laporan_karyawan') }}" class="quick-action-btn">
+                                <i class="fas fa-chart-bar"></i>
+                                <h6 class="mb-1 mt-2">Laporan</h6>
+                                <small class="text-muted">Lihat analisis data</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Tambah Karyawan -->
+<div class="modal fade" id="tambahKaryawanModal" tabindex="-1" role="dialog" aria-labelledby="tambahKaryawanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="tambahKaryawanModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>Tambah Karyawan Baru
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('main.tambah_karyawan') }}" id="formTambahKaryawan">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nama" class="form-label font-weight-bold">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required 
+                                   placeholder="Masukkan nama lengkap">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="nik" class="form-label font-weight-bold">NIK</label>
+                            <input type="text" class="form-control" id="nik" name="nik" 
+                                   placeholder="Nomor Induk Karyawan">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="jabatan" class="form-label font-weight-bold">Jabatan *</label>
+                            <input type="text" class="form-control" id="jabatan" name="jabatan" required
+                                   placeholder="Posisi/jabatan">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label font-weight-bold">Status Karyawan *</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="">Pilih Status</option>
+                                <option value="TETAP">TETAP</option>
+                                <option value="KONTRAK">KONTRAK</option>
+                                <option value="PERCOBAAN">PERCOBAAN</option>
+                                <option value="HARIAN">HARIAN</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gaji_pokok" class="form-label font-weight-bold">Gaji Pokok *</label>
+                            <input type="text" class="form-control" id="gaji_pokok" name="gaji_pokok" 
+                                   required placeholder="0">
+                            <small class="form-text text-muted">Format: 5.000.000</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tanggal_masuk" class="form-label font-weight-bold">Tanggal Masuk *</label>
+                            <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="alamat" class="form-label font-weight-bold">Alamat</label>
+                            <textarea class="form-control" id="alamat" name="alamat" rows="2"
+                                      placeholder="Alamat lengkap"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="no_telepon" class="form-label font-weight-bold">No. Telepon</label>
+                            <input type="text" class="form-control" id="no_telepon" name="no_telepon"
+                                   placeholder="081234567890">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label font-weight-bold">Email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="email@example.com">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary-modern btn-modern" id="submitBtn">
+                            <i class="fas fa-save me-2"></i>Simpan Karyawan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format gaji pokok input
+    const gajiInput = document.getElementById('gaji_pokok');
+    if (gajiInput) {
+        gajiInput.addEventListener('input', function() {
+            // Remove non-digit characters
+            let value = this.value.replace(/\D/g, '');
+            
+            // Format with dots as thousand separators
+            if (value.length > 0) {
+                value = parseInt(value).toLocaleString('id-ID');
+            }
+            
+            this.value = value;
+        });
+        
+        // Handle form submission - remove formatting before submitting
+        const form = document.getElementById('formTambahKaryawan');
+        if (form) {
+            form.addEventListener('submit', function() {
+                if (gajiInput.value) {
+                    gajiInput.value = gajiInput.value.replace(/\./g, '');
+                }
+            });
+        }
+    }
+
+    // Set tanggal masuk default ke hari ini
+    const tanggalMasukInput = document.getElementById('tanggal_masuk');
+    if (tanggalMasukInput && !tanggalMasukInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        tanggalMasukInput.value = today;
+    }
+
+    // Form submission loading state
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+            this.disabled = true;
+        });
+    }
+});
+
+// Konfirmasi hapus
+function confirmDelete(event) {
+    event.stopPropagation();
+    return confirm('Apakah Anda yakin ingin menghapus data karyawan ini? Tindakan ini tidak dapat dibatalkan.');
+}
+</script>
+{% endblock %}

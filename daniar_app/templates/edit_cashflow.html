@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Edit Cashflow - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan (Sama seperti Dashboard) --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+        --warning-orange: #f39c12;
+        --modal-blue: #2980b9;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi Fade In --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Gaya Card Umum --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+
+    /* Tooltip untuk penjelasan kategori */
+    .kategori-tooltip {
+        border-bottom: 1px dashed #6c757d;
+        cursor: help;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Edit Data Cashflow</h1>
+        <p class="text-muted mb-0">{{ moment().format('dddd, D MMMM YYYY') }}</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm animate-fade-in">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Formulir Edit Data
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.edit_cashflow', id=data.id) }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="tanggal" class="form-label">Tanggal</label>
+                                <input type="date" name="tanggal" class="form-control" value="{{ data.tanggal.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="nama_barang" class="form-label">Nama Barang / Jasa</label>
+                                <input type="text" class="form-control" name="nama_barang" value="{{ data.nama_barang }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="jenis" class="form-label">Jenis <small class="text-muted">(Pilih kategori)</small></label>
+                                <select name="jenis" class="form-select" required>
+                                    <option value="" disabled>-- Pilih Jenis --</option>
+                                    
+                                    <!-- MODAL AWAL (Biru) -->
+                                    <optgroup label="MODAL AWAL" style="color: var(--modal-blue);">
+                                        <option value="SETORAN MODAL AWAL" {% if data.jenis == 'SETORAN MODAL AWAL' %}selected{% endif %}>SETORAN MODAL AWAL</option>
+                                        <option value="TAMBAHAN MODAL" {% if data.jenis == 'TAMBAHAN MODAL' %}selected{% endif %}>TAMBAHAN MODAL</option>
+                                        <option value="INVESTASI PEMILIK" {% if data.jenis == 'INVESTASI PEMILIK' %}selected{% endif %}>INVESTASI PEMILIK</option>
+                                    </optgroup>
+
+                                    <!-- PEMASUKAN (Hijau) -->
+                                    <optgroup label="PEMASUKAN">
+                                        <option value="PENJUALAN TUNAI" {% if data.jenis == 'PENJUALAN TUNAI' %}selected{% endif %}>PENJUALAN TUNAI</option>
+                                        <option value="PENERIMAAN PIUTANG" {% if data.jenis == 'PENERIMAAN PIUTANG' %}selected{% endif %}>PENERIMAAN PIUTANG</option>
+                                        <option value="PENDAPATAN BUNGA" {% if data.jenis == 'PENDAPATAN BUNGA' %}selected{% endif %}>PENDAPATAN BUNGA</option>
+                                        <option value="PENGEMBALIAN PAJAK" {% if data.jenis == 'PENGEMBALIAN PAJAK' %}selected{% endif %}>PENGEMBALIAN PAJAK</option>
+                                        <option value="PENERIMAAN TUNAI LAINNYA" {% if data.jenis == 'PENERIMAAN TUNAI LAINNYA' %}selected{% endif %}>PENERIMAAN TUNAI LAINNYA</option>
+                                        <option value="BAYAR KASBON" {% if data.jenis == 'BAYAR KASBON' %}selected{% endif %}>BAYAR KASBON</option>
+                                    </optgroup>
+
+                                    <!-- PINJAMAN/FUNDING (Oranye) -->
+                                    <optgroup label="PINJAMAN / FUNDING" style="color: var(--warning-orange);">
+                                        <option value="PINJAMAN BANK" {% if data.jenis == 'PINJAMAN BANK' %}selected{% endif %}>PINJAMAN BANK</option>
+                                        <option value="CASH INJECTION" {% if data.jenis == 'CASH INJECTION' %}selected{% endif %}>CASH INJECTION</option>
+                                        <option value="DANA PINJAMAN" {% if data.jenis == 'DANA PINJAMAN' %}selected{% endif %}>DANA PINJAMAN</option>
+                                        <option value="FUNDING INVESTOR" {% if data.jenis == 'FUNDING INVESTOR' %}selected{% endif %}>FUNDING INVESTOR</option>
+                                        <!-- Untuk kompatibilitas data lama -->
+                                        <option value="PINJAMAN / CASH INJECTION" {% if data.jenis == 'PINJAMAN / CASH INJECTION' %}selected{% endif %}>PINJAMAN / CASH INJECTION</option>
+                                        <option value="FUNDING" {% if data.jenis == 'FUNDING' %}selected{% endif %}>FUNDING</option>
+                                    </optgroup>
+
+                                    <!-- HPP (Merah) -->
+                                    <optgroup label="( – ) HPP">
+                                        <option value="BIAYA PRODUK / LAYANAN LANGSUNG" {% if data.jenis == 'BIAYA PRODUK / LAYANAN LANGSUNG' %}selected{% endif %}>BIAYA PRODUK / LAYANAN LANGSUNG</option>
+                                        <option value="PAJAK PENGGAJIAN - LANGSUNG" {% if data.jenis == 'PAJAK PENGGAJIAN - LANGSUNG' %}selected{% endif %}>PAJAK PENGGAJIAN - LANGSUNG</option>
+                                        <option value="GAJI - TKL" {% if data.jenis == 'GAJI - TKL' %}selected{% endif %}>GAJI - TKL</option>
+                                        <option value="PERSEDIAAN" {% if data.jenis == 'PERSEDIAAN' %}selected{% endif %}>PERSEDIAAN</option>
+                                    </optgroup>
+
+                                    <!-- BIAYA OPERASIONAL (Merah) -->
+                                    <optgroup label="( – ) BIAYA OPERASIONAL">
+                                        <option value="GAJI KARYAWAN" {% if data.jenis == 'GAJI KARYAWAN' %}selected{% endif %}>GAJI KARYAWAN</option>
+                                        <option value="IKLAN" {% if data.jenis == 'IKLAN' %}selected{% endif %}>IKLAN</option>
+                                        <option value="BIAYA BANK" {% if data.jenis == 'BIAYA BANK' %}selected{% endif %}>BIAYA BANK</option>
+                                        <option value="PELATIHAN" {% if data.jenis == 'PELATIHAN' %}selected{% endif %}>PELATIHAN</option>
+                                        <option value="ASURANSI" {% if data.jenis == 'ASURANSI' %}selected{% endif %}>ASURANSI</option>
+                                        <option value="INTERNET" {% if data.jenis == 'INTERNET' %}selected{% endif %}>INTERNET</option>
+                                        <option value="LISENSI / IZIN" {% if data.jenis == 'LISENSI / IZIN' %}selected{% endif %}>LISENSI / IZIN</option>
+                                        <option value="MAKANAN / HIBURAN" {% if data.jenis == 'MAKANAN / HIBURAN' %}selected{% endif %}>MAKANAN / HIBURAN</option>
+                                        <option value="PERALATAN KANTOR" {% if data.jenis == 'PERALATAN KANTOR' %}selected{% endif %}>PERALATAN KANTOR</option>
+                                        <option value="PAJAK GAJI" {% if data.jenis == 'PAJAK GAJI' %}selected{% endif %}>PAJAK GAJI</option>
+                                        <option value="ONGKOS KIRIM" {% if data.jenis == 'ONGKOS KIRIM' %}selected{% endif %}>ONGKOS KIRIM</option>
+                                        <option value="PENCETAKAN" {% if data.jenis == 'PENCETAKAN' %}selected{% endif %}>PENCETAKAN</option>
+                                        <option value="KONSULTAN" {% if data.jenis == 'KONSULTAN' %}selected{% endif %}>KONSULTAN</option>
+                                        <option value="OKUPANSI" {% if data.jenis == 'OKUPANSI' %}selected{% endif %}>OKUPANSI</option>
+                                        <option value="BIAYA SEWA" {% if data.jenis == 'BIAYA SEWA' %}selected{% endif %}>BIAYA SEWA</option>
+                                        <option value="SUBCONTRACTOR" {% if data.jenis == 'SUBCONTRACTOR' %}selected{% endif %}>SUBCONTRACTOR</option>
+                                        <option value="TELEPON" {% if data.jenis == 'TELEPON' %}selected{% endif %}>TELEPON</option>
+                                        <option value="TRANSPORTASI" {% if data.jenis == 'TRANSPORTASI' %}selected{% endif %}>TRANSPORTASI</option>
+                                        <option value="PERJALANAN DINAS" {% if data.jenis == 'PERJALANAN DINAS' %}selected{% endif %}>PERJALANAN DINAS</option>
+                                        <option value="BIAYA LISTRIK" {% if data.jenis == 'BIAYA LISTRIK' %}selected{% endif %}>BIAYA LISTRIK</option>
+                                        <option value="PENGEMBANGAN WEB" {% if data.jenis == 'PENGEMBANGAN WEB' %}selected{% endif %}>PENGEMBANGAN WEB</option>
+                                        <option value="DOMAIN WEB DAN HOSTING" {% if data.jenis == 'DOMAIN WEB DAN HOSTING' %}selected{% endif %}>DOMAIN WEB DAN HOSTING</option>
+                                        <option value="BIAYA AIR" {% if data.jenis == 'BIAYA AIR' %}selected{% endif %}>BIAYA AIR</option>
+                                        <option value="BIAYA SUBSCRIPTION" {% if data.jenis == 'BIAYA SUBSCRIPTION' %}selected{% endif %}>BIAYA SUBSCRIPTION</option>
+                                        <option value="PAJAK PEMBELIAN" {% if data.jenis == 'PAJAK PEMBELIAN' %}selected{% endif %}>PAJAK PEMBELIAN</option>
+                                    </optgroup>
+
+                                    <!-- PENGELUARAN LAIN-LAIN (Merah) -->
+                                    <optgroup label="( – ) PENGELUARAN LAIN-LAIN">
+                                        <option value="PENGELUARAN TUNAI UNTUK PEMILIK" {% if data.jenis == 'PENGELUARAN TUNAI UNTUK PEMILIK' %}selected{% endif %}>PENGELUARAN TUNAI UNTUK PEMILIK</option>
+                                        <option value="KASBON" {% if data.jenis == 'KASBON' %}selected{% endif %}>KASBON</option>
+                                        <option value="BEBAN BUNGA" {% if data.jenis == 'BEBAN BUNGA' %}selected{% endif %}>BEBAN BUNGA</option>
+                                        <option value="BEBAN PAJAK PENGHASILAN" {% if data.jenis == 'BEBAN PAJAK PENGHASILAN' %}selected{% endif %}>BEBAN PAJAK PENGHASILAN</option>
+                                        <option value="BIAYA ADMIN" {% if data.jenis == 'BIAYA ADMIN' %}selected{% endif %}>BIAYA ADMIN</option>
+                                        <option value="LAINNYA" {% if data.jenis == 'LAINNYA' %}selected{% endif %}>LAINNYA</option>
+                                        <option value="KEWAJIBAN" {% if data.jenis == 'KEWAJIBAN' %}selected{% endif %}>KEWAJIBAN</option>
+                                    </optgroup>
+                                </select>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    <span class="kategori-tooltip" title="Modal: Investasi pemilik | Funding: Pinjaman yang harus dikembalikan">Perbedaan Modal vs Funding</span>
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="jumlah" class="form-label">Jumlah</label>
+                                <input type="text" name="jumlah" class="form-control" value="{{ data.jumlah or '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="satuan" class="form-label">Satuan</label>
+                                <input type="text" name="satuan" class="form-control" value="{{ data.satuan or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="harga" class="form-label">Nilai Total</label>
+                                <input type="number" name="harga" class="form-control" step="0.01" value="{{ data.harga }}" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="keterangan" class="form-label">Keterangan</label>
+                                <input type="text" name="keterangan" class="form-control" value="{{ data.keterangan or '' }}">
+                            </div>
+                            <div class="col-12">
+                                <label for="catatan_tambahan" class="form-label">Catatan Tambahan</label>
+                                <input type="text" name="catatan_tambahan" class="form-control" value="{{ data.catatan_tambahan or '' }}">
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <a href="{{ url_for('main.cashflow') }}" class="btn btn-secondary me-2">
+                                    <i class="bi bi-x-lg me-1"></i> Batal
+                                </a>
+                                <button type="submit" class="btn" style="background-color: var(--primary-orange); color: white; font-weight: 600;">
+                                    <i class="bi bi-check-lg me-1"></i> Simpan Perubahan
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tooltip untuk penjelasan kategori
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltip = document.querySelector('.kategori-tooltip');
+    if (tooltip) {
+        tooltip.addEventListener('click', function() {
+            alert('🔹 MODAL: Investasi pemilik (tidak perlu dikembalikan)\n🔹 FUNDING: Pinjaman (harus dikembalikan + bunga)\n🔹 PEMASUKAN: Pendapatan dari operasional');
+        });
+    }
+});
+</script>
+{% endblock %}

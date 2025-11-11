@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Laporan Laba Rugi - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan (Sama seperti Dashboard) --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi Fade In --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Gaya Card Umum --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+    
+    /* --- Gaya Tabel Laporan --- */
+    .laporan-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .laporan-table th, .laporan-table td {
+        padding: 12px 8px;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .laporan-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #868e96;
+        background-color: var(--light-bg);
+    }
+    .laporan-table tr:hover {
+        background-color: var(--light-orange);
+    }
+    .laporan-table td:last-child {
+        text-align: right;
+        font-weight: 600;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .laporan-table .section-title {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--primary-orange);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .laporan-table .grand-total td {
+        font-weight: 700;
+        font-size: 1.1rem;
+        border-top: 2px solid var(--primary-orange);
+        color: var(--dark-bg);
+    }
+    .laporan-table .text-success { color: var(--success-green) !important; }
+    .laporan-table .text-danger { color: var(--danger-red) !important; }
+
+    /* --- Gaya untuk Cetak --- */
+    @media print {
+        body * { visibility: hidden; }
+        #print-area, #print-area * { visibility: visible; }
+        #print-area { position: absolute; top: 0; left: 0; width: 100%; }
+        .no-print { display: none !important; }
+        .card { box-shadow: none; border: 1px solid #dee2e6; }
+        .laporan-table th, .laporan-table td { color: black; }
+        .laporan-table .section-title, .laporan-table .grand-total td { color: black; }
+        .text-success, .text-danger { color: black !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 no-print">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Laporan Laba Rugi</h1>
+        <p class="text-muted mb-0">Periode: {{ hari_ini }}</p>
+    </div>
+
+    <!-- Filter Periode -->
+    <div class="card shadow-sm mb-4 animate-fade-in no-print" style="animation-delay: 0.1s;">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="filter_month" class="form-label">Bulan</label>
+                    <select name="month" id="filter_month" class="form-select">
+                        <option value="">Semua Bulan</option>
+                        {% for val, name in months %}
+                        <option value="{{ val }}" {% if selected_month == val %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="filter_year" class="form-label">Tahun</label>
+                    <select name="year" id="filter_year" class="form-select">
+                        <option value="">Semua Tahun</option>
+                        {% for year in years %}
+                        <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}">{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="print-area">
+        <!-- Card Laporan -->
+        <div class="card shadow-sm animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Laporan Laba Rugi</h6>
+            </div>
+            <div class="card-body">
+                <table class="laporan-table">
+                    <tbody>
+                        <tr>
+                            <td colspan="2" class="section-title">PENDAPATAN</td>
+                        </tr>
+                        <tr>
+                            <td>Total Pemasukan</td>
+                            <td class="text-success">{{ total_pemasukan|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="section-title">HARGA POKOK PENDAPATAN (HPP)</td>
+                        </tr>
+                        <tr>
+                            <td>Harga Pokok Penjualan (HPP)</td>
+                            <td class="text-danger">( {{ total_hpp|currency }})</td>
+                        </tr>
+                        <tr>
+                            <td class="section-title">Laba Kotor</td>
+                            <td class="text-success">{{ laba_kotor|currency }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="section-title">BEBAN OPERASIONAL</td>
+                        </tr>
+                        <tr>
+                            <td>Total Beban Operasional</td>
+                            <td class="text-danger">( {{ total_beban_operasional|currency }})</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="section-title">BEBAN LAIN-LAIN</td>
+                        </tr>
+                        <tr>
+                            <td>Total Beban Lain-lain</td>
+                            <td class="text-danger">( {{ total_beban_lain|currency }})</td>
+                        </tr>
+                        <tr>
+                            <td class="grand-total {% if laba_bersih >= 0 %}text-success{% else %}text-danger{% endif %}">LABA BERSIH</td>
+                            <td class="grand-total {% if laba_bersih >= 0 %}text-success{% else %}text-danger{% endif %}">{{ laba_bersih|currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="d-flex justify-content-center gap-2 mt-4 no-print">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Kembali</a>
+        <button class="btn" style="background-color: var(--primary-orange); color: white;" onclick="window.print()">
+            <i class="bi bi-printer"></i> Cetak Laporan
+        </button>
+    </div>
+</div>
+{% endblock %}

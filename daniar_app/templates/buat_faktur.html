@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Buat Faktur Baru - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(247, 127, 0, 0.3);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--danger-red), #e84393);
+        border: none;
+        border-radius: 6px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+
+    .item-row {
+        background: var(--light-bg);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-orange);
+        transition: all 0.3s ease;
+    }
+
+    .item-row:hover {
+        background: var(--light-orange);
+        transform: translateX(5px);
+    }
+
+    .section-title {
+        color: var(--dark-bg);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-orange);
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, var(--light-bg), var(--white));
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 2px dashed var(--primary-orange);
+    }
+
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--success-green);
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Animasi */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .sticky-actions {
+        position: sticky;
+        bottom: 0;
+        background: var(--white);
+        padding: 1.5rem 0;
+        border-top: 1px solid #e9ecef;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let itemCount = 0;
+
+    function addItemRow() {
+        const itemList = document.getElementById('item-list');
+        const newRow = document.createElement('div');
+        newRow.className = 'row g-3 item-row animate-fade-in';
+        newRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" name="nama_barang[]" class="form-control" placeholder="Nama Barang" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="jumlah[]" class="form-control" placeholder="Jumlah" step="1" min="1" required onchange="calculateTotal()">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="harga[]" class="form-control" placeholder="Harga Satuan" step="0.01" min="0" required onchange="calculateTotal()">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="subtotal[]" class="form-control bg-light" placeholder="Subtotal" readonly>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm w-100 h-100 d-flex align-items-center justify-content-center" onclick="removeItemRow(this)" title="Hapus Item">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        itemList.appendChild(newRow);
+        itemCount++;
+        calculateTotal();
+    }
+
+    function removeItemRow(button) {
+        const row = button.closest('.item-row');
+        row.style.animation = 'fadeInUp 0.3s ease-out reverse';
+        setTimeout(() => {
+            row.remove();
+            itemCount--;
+            calculateTotal();
+        }, 300);
+    }
+
+    function calculateTotal() {
+        let grandTotal = 0;
+        const itemRows = document.querySelectorAll('.item-row');
+        
+        itemRows.forEach(row => {
+            const jumlah = parseFloat(row.querySelector('input[name="jumlah[]"]').value) || 0;
+            const harga = parseFloat(row.querySelector('input[name="harga[]"]').value) || 0;
+            const subtotal = jumlah * harga;
+            
+            row.querySelector('input[name="subtotal[]"]').value = subtotal.toLocaleString('id-ID');
+            grandTotal += subtotal;
+        });
+
+        document.getElementById('total-amount').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+        document.getElementById('total_harga').value = grandTotal;
+    }
+
+    // Set tanggal hari ini sebagai default
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tanggal_faktur').value = today;
+        
+        // Tambahkan 2 baris item default
+        addItemRow();
+        addItemRow();
+        
+        // Generate nomor faktur otomatis
+        generateInvoiceNumber();
+    });
+
+    function generateInvoiceNumber() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const invoiceNumber = `INV-${year}${month}${day}-${random}`;
+        
+        document.getElementById('nomor_faktur').value = invoiceNumber;
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 animate-fade-in">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">➕ Buat Faktur Baru</h1>
+        <a href="{{ url_for('main.faktur') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+        </a>
+    </div>
+
+    <div class="card shadow animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Form Faktur Penjualan</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.buat_faktur') }}">
+                <!-- Informasi Faktur -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label for="nomor_faktur" class="form-label">Nomor Faktur</label>
+                        <input type="text" class="form-control" id="nomor_faktur" name="nomor_faktur" required readonly>
+                        <div class="form-text">Nomor faktur akan digenerate otomatis</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="nama_pelanggan" class="form-label">Nama Pelanggan</label>
+                        <input type="text" class="form-control" id="nama_pelanggan" name="nama_pelanggan" placeholder="Masukkan nama pelanggan" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tanggal_faktur" class="form-label">Tanggal Faktur</label>
+                        <input type="date" class="form-control" id="tanggal_faktur" name="tanggal_faktur" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="alamat_pelanggan" class="form-label">Alamat Pelanggan</label>
+                        <textarea class="form-control" id="alamat_pelanggan" name="alamat_pelanggan" rows="2" placeholder="Alamat lengkap pelanggan"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="keterangan" class="form-label">Keterangan</label>
+                        <textarea class="form-control" id="keterangan" name="keterangan" rows="2" placeholder="Catatan tambahan"></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Detail Barang -->
+                <h5 class="section-title">📦 Detail Barang</h5>
+                
+                <div class="row g-3 mb-2">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Nama Barang</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Jumlah</label>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Harga Satuan</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Subtotal</label>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">Aksi</label>
+                    </div>
+                </div>
+
+                <div id="item-list">
+                    <!-- Baris item akan ditambahkan di sini oleh JavaScript -->
+                </div>
+                
+                <div class="text-end mt-3">
+                    <button type="button" class="btn btn-secondary" onclick="addItemRow()">
+                        <i class="bi bi-plus-circle"></i> Tambah Item Barang
+                    </button>
+                </div>
+
+                <!-- Total Section -->
+                <div class="total-section mt-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-0 fw-bold">TOTAL FAKTUR</h6>
+                            <small class="text-muted">Jumlah total dari semua item barang</small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="total-amount" id="total-amount">Rp 0</div>
+                            <input type="hidden" name="total_harga" id="total_harga" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="sticky-actions">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <i class="bi bi-arrow-clockwise"></i> Reset Form
+                            </button>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Simpan Faktur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function resetForm() {
+        if (confirm('Apakah Anda yakin ingin mereset form? Semua data yang sudah diisi akan hilang.')) {
+            document.querySelector('form').reset();
+            const itemList = document.getElementById('item-list');
+            itemList.innerHTML = '';
+            addItemRow();
+            addItemRow();
+            generateInvoiceNumber();
+            calculateTotal();
+        }
+    }
+</script>
+{% endblock %}

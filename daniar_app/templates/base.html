@@ -1,0 +1,168 @@
+<!-- FILE: templates/base.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}PT. Daniar Furniture Art{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Gaya Umum --- */
+        body { font-family: 'Poppins', sans-serif; background-color: #f8f9fb; }
+        .container { margin-top: 20px; }
+        .alert { border-left:5px solid #ff8c00; border-radius:10px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from {opacity:0; transform:translateY(-5px);} to {opacity:1; transform:translateY(0);} }
+        
+        /* --- Navigasi & Kartu --- */
+        .quick-nav { display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; justify-content:center; }
+        .quick-nav a { text-decoration:none; flex:1 0 120px; max-width:150px; text-align:center; padding:1rem; border-radius:16px; background:linear-gradient(135deg,#ff8c00,#ff6b00); color:#fff; font-weight:600; transition:all 0.3s; box-shadow:0 6px 20px rgba(255,107,0,0.2); }
+        .quick-nav a:hover { transform:translateY(-5px) scale(1.05); background:linear-gradient(135deg,#ff6b00,#ff4500); box-shadow:0 12px 30px rgba(255,107,0,0.4); }
+        .quick-nav a i { font-size:2rem; margin-bottom:0.5rem; transition:all 0.3s; }
+        .quick-nav a:hover i { transform:scale(1.3) rotate(10deg); text-shadow:0 0 15px rgba(255,255,255,0.8); }
+        .card-dashboard { background:linear-gradient(135deg,#ffa500,#ff8c00); border-radius:16px; padding:1.5rem; color:#fff; text-align:center; font-weight:600; transition: all 0.3s; box-shadow:0 6px 20px rgba(255,140,0,0.2); }
+        .card-dashboard:hover { transform: translateY(-5px); background: linear-gradient(135deg,#ff8c00,#ffa500); box-shadow:0 12px 30px rgba(255,140,0,0.4); }
+        .card-dashboard i { font-size:2rem; margin-bottom:0.5rem; }
+        .table thead th { background-color:#ff8c00; color:#fff; }
+        .form-control, .form-select { border-radius:8px; }
+
+        /* --- Gaya Untuk Cetak --- */
+        .print-only { display: none; } /* Sembunyikan elemen khusus cetak di layar */
+        .no-print { display: block; } /* Pastikan elemen layar terlihat */
+
+        @media print {
+            body {
+                padding: 15mm;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 12pt;
+                color: black;
+                background: white;
+            }
+            main.container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            /* Sembunyikan elemen yang tidak perlu */
+            .no-print {
+                display: none !important;
+            }
+
+            /* Tampilkan elemen khusus cetak */
+            .print-only {
+                display: block !important;
+            }
+
+            /* Header & Footer Khusus Cetak */
+            .print-header, .print-footer {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .print-header h1 {
+                font-size: 18pt;
+                font-weight: bold;
+                margin: 0;
+            }
+            .print-header p {
+                font-size: 12pt;
+                margin: 5px 0;
+            }
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                font-size: 10pt;
+                color: #555;
+                border-top: 1px solid #eee;
+                padding-top: 5px;
+            }
+            
+            /* Hapus warna latar dan bayangan untuk hemat tinta */
+            .card, .card-dashboard, .quick-nav a {
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+                border: none !important;
+            }
+            .text-success, .text-danger {
+                color: black !important;
+                font-weight: bold;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Khusus Cetak (Hanya muncul saat di-print) -->
+    <header class="print-only">
+        <div class="print-header">
+            <h1>PT. DANIAR FURNITURE ART</h1>
+            <p>{{ self.title() }}</p>
+        </div>
+    </header>
+
+    <!-- Header & Navigasi untuk Tampilan Layar (Tidak akan tercetak) -->
+    <header class="no-print">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} shadow-sm">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+            
+            {% if session.logged_in %}
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <span class="me-3">Selamat datang, <strong>{{ session.username }}</strong></span>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+            {% endif %}
+
+            
+            <nav class="quick-nav">
+    <a href="{{ url_for('main.dashboard') }}"><i class="bi bi-speedometer2"></i><br>Dashboard</a>
+    <a href="{{ url_for('main.cashflow') }}"><i class="bi bi-currency-dollar"></i><br>Cashflow</a>
+    <a href="{{ url_for('main.aset_tetap') }}"><i class="bi bi-building"></i><br>Aset Tetap</a>
+    <a href="{{ url_for('main.neraca') }}"><i class="bi bi-bar-chart-line-fill"></i><br>Neraca</a>
+    <a href="{{ url_for('main.laporan') }}"><i class="bi bi-file-earmark-text"></i><br>Laporan</a>
+    <a href="{{ url_for('main.faktur') }}"><i class="bi bi-receipt"></i><br>Faktur</a>
+    <a href="{{ url_for('main.rab') }}"><i class="bi bi-card-checklist"></i><br>RAB</a>
+    <a href="{{ url_for('main.karyawan') }}"><i class="bi bi-people-fill"></i><br>Karyawan</a>
+    <a href="{{ url_for('main.slip_gaji') }}"><i class="bi bi-file-text"></i><br>Slip Gaji</a>
+          </nav>
+        </div>
+    </header>
+
+    <!-- Konten Utama Halaman -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer untuk Tampilan Layar (Tidak akan tercetak) -->
+    <footer class="no-print text-center mt-5 mb-3">
+        <p class="text-muted">&copy; 2025 PT. Daniar Furniture Art. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Footer Khusus Cetak (Hanya muncul saat di-print) -->
+    <footer class="print-only">
+        <div class="print-footer">
+            <p>Dicetak pada: {{ waktu_cetak }}</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+     <!-- TAMBAHKAN DUA BARIS INI -->
+    {{ moment.include_moment() }}
+    {{ moment.locale('id') }}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

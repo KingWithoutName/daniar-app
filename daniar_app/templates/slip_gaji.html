@@ -1,0 +1,547 @@
+<!-- templates/slip_gaji.html -->
+{% extends "base.html" %}
+{% block title %}Slip Gaji - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --warning-orange: #f77f00;
+        --info-blue: #3498db;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(247, 127, 0, 0.3);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: var(--light-bg);
+        border-bottom: 2px solid var(--primary-orange);
+        font-weight: 700;
+        color: var(--dark-bg);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 1rem 0.75rem;
+    }
+
+    .table tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+        border-color: #e9ecef;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--light-orange);
+        transition: background-color 0.3s ease;
+    }
+
+    .badge-status {
+        font-size: 0.75rem;
+        padding: 0.4em 0.7em;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .badge-draft {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .badge-paid {
+        background-color: var(--success-green);
+        color: white;
+    }
+
+    .badge-cancelled {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .money-format {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+    }
+
+    .action-buttons .btn {
+        margin-right: 0.25rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        border: none;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        border: none;
+        color: var(--dark-bg);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #e84393);
+        border: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-green), #00cec9);
+        border: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Summary Cards */
+    .summary-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .summary-card.total { border-left-color: var(--primary-orange); }
+    .summary-card.pengeluaran { border-left-color: var(--success-green); }
+    .summary-card.periode { border-left-color: var(--info-blue); }
+    .summary-card.rata { border-left-color: var(--warning-orange); }
+
+    /* Animasi */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Employee Info */
+    .employee-name {
+        font-weight: 600;
+        color: var(--dark-bg);
+    }
+
+    .employee-detail {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Form Styles */
+    .form-control:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+
+    .form-select:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 animate-fade-in">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">💰 Slip Gaji</h1>
+        <div>
+            <button class="btn btn-success mr-2" onclick="printAllSlip()">
+                <i class="bi bi-printer"></i> Print Semua
+            </button>
+            <a href="{{ url_for('main.karyawan') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Kembali ke Karyawan
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card total">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Slip Gaji</h6>
+                        <h4 class="mb-0 text-dark">{{ slip_gaji|length }} Slip</h4>
+                    </div>
+                    <i class="bi bi-receipt text-primary fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card pengeluaran">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Pengeluaran</h6>
+                        <h4 class="mb-0 text-dark">{{ total_pengeluaran_gaji | format_rupiah }}</h4>
+                    </div>
+                    <i class="bi bi-cash-coin text-success fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card periode">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Periode Terbaru</h6>
+                        <h4 class="mb-0 text-dark">{{ periode_terbaru or '-' }}</h4>
+                    </div>
+                    <i class="bi bi-calendar text-info fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card rata">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Rata-rata Gaji</h6>
+                        <h4 class="mb-0 text-dark">{{ rata_rata_gaji | format_rupiah }}</h4>
+                    </div>
+                    <i class="bi bi-graph-up text-warning fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Buat Slip Gaji Baru -->
+    <div class="card shadow animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-plus-circle"></i> Buat Slip Gaji Baru
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.buat_slip_gaji') }}" id="slipGajiForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="karyawan_id" class="form-label fw-bold">Pilih Karyawan *</label>
+                        <select name="karyawan_id" id="karyawan_id" class="form-select" required>
+                            <option value="" disabled selected>-- Pilih Karyawan --</option>
+                            {% for k in karyawan %}
+                            <option value="{{ k.id }}" data-gaji="{{ k.gaji_pokok }}">
+                                {% if k.nik %}{{ k.nik }} - {% endif %}{{ k.nama }} ({{ k.jabatan }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="periode_bulan" class="form-label fw-bold">Bulan *</label>
+                        <select name="periode_bulan" id="periode_bulan" class="form-select" required>
+                            <option value="" disabled selected>-- Pilih Bulan --</option>
+                            {% for i in range(1, 13) %}
+                            <option value="{{ '%02d'|format(i) }}">{{ ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][i-1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="periode_tahun" class="form-label fw-bold">Tahun *</label>
+                        <select name="periode_tahun" id="periode_tahun" class="form-select" required>
+                            <option value="" disabled selected>-- Pilih Tahun --</option>
+                            {% for year in range(2020, 2031) %}
+                            <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle"></i> Buat Slip
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detail Gaji (akan terisi otomatis) -->
+                <div class="row mt-4" id="detailGaji" style="display: none;">
+                    <div class="col-12">
+                        <div class="card border-left-info">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold text-info mb-3">
+                                    <i class="bi bi-calculator"></i> Detail Perhitungan Gaji
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Gaji Pokok</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" class="form-control" id="gaji_pokok" name="gaji_pokok" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Tunjangan</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" class="form-control" id="tunjangan" name="tunjangan" value="0" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Bonus</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" class="form-control" id="bonus" name="bonus" value="0" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Potongan</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" class="form-control" id="potongan" name="potongan" value="0" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Keterangan Tunjangan</label>
+                                        <input type="text" class="form-control" id="keterangan_tunjangan" name="keterangan_tunjangan" placeholder="Keterangan tunjangan (opsional)">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Keterangan Potongan</label>
+                                        <input type="text" class="form-control" id="keterangan_potongan" name="keterangan_potongan" placeholder="Keterangan potongan (opsional)">
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="alert alert-success" id="totalGajiContainer">
+                                            <strong>Total Gaji Bersih: <span id="totalGaji">Rp 0</span></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Riwayat Slip Gaji -->
+    <div class="card shadow animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-clock-history"></i> Riwayat Slip Gaji
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            {% if slip_gaji %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="5%">No.</th>
+                            <th width="15%">Karyawan</th>
+                            <th width="10%">Jabatan</th>
+                            <th width="10%">Periode</th>
+                            <th width="12%">Gaji Pokok</th>
+                            <th width="10%">Tunjangan</th>
+                            <th width="10%">Bonus</th>
+                            <th width="10%">Potongan</th>
+                            <th width="13%">Total Gaji</th>
+                            <th width="8%">Status</th>
+                            <th width="7%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in slip_gaji %}
+                        <tr>
+                            <td class="fw-bold">{{ loop.index }}</td>
+                            <td>
+                                <div class="employee-name">{{ s.karyawan.nama }}</div>
+                                <div class="employee-detail">{{ s.karyawan.nik or 'NIK: -' }}</div>
+                            </td>
+                            <td>{{ s.karyawan.jabatan }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ s.periode }}</span>
+                            </td>
+                            <td>
+                                <span class="money-format text-success">{{ s.gaji_pokok|format_rupiah }}</span>
+                            </td>
+                            <td class="text-success money-format">{{ s.tunjangan|format_rupiah }}</td>
+                            <td class="text-success money-format">{{ s.bonus|format_rupiah }}</td>
+                            <td class="text-danger money-format">{{ s.potongan|format_rupiah }}</td>
+                            <td>
+                                <span class="money-format fw-bold text-success">{{ s.total_gaji|format_rupiah }}</span>
+                            </td>
+                            <td>
+                                {% if s.status == 'PAID' %}
+                                    <span class="badge badge-status badge-paid">PAID</span>
+                                {% elif s.status == 'CANCELLED' %}
+                                    <span class="badge badge-status badge-cancelled">CANCELLED</span>
+                                {% else %}
+                                    <span class="badge badge-status badge-draft">DRAFT</span>
+                                {% endif %}
+                            </td>
+                            <td class="action-buttons">
+                                <a href="{{ url_for('main.print_slip_gaji', id=s.id) }}" class="btn btn-info btn-sm" title="Print" target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a href="{{ url_for('main.edit_slip_gaji', id=s.id) }}" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ url_for('main.hapus_slip_gaji', id=s.id) }}" method="post" class="d-inline" onsubmit="return confirm('Hapus slip gaji ini?')">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-light">
+                        <tr>
+                            <th colspan="4" class="text-end">TOTAL:</th>
+                            <th class="text-end">{{ total_gaji_pokok|format_rupiah }}</th>
+                            <th class="text-end">{{ total_tunjangan|format_rupiah }}</th>
+                            <th class="text-end">{{ total_bonus|format_rupiah }}</th>
+                            <th class="text-end">{{ total_potongan|format_rupiah }}</th>
+                            <th class="text-end text-success">{{ total_pengeluaran_gaji|format_rupiah }}</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-receipt"></i>
+                <h4 class="text-muted">Belum Ada Slip Gaji</h4>
+                <p class="text-muted">Mulai dengan membuat slip gaji pertama Anda.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const karyawanSelect = document.getElementById('karyawan_id');
+    const gajiPokokInput = document.getElementById('gaji_pokok');
+    const tunjanganInput = document.getElementById('tunjangan');
+    const bonusInput = document.getElementById('bonus');
+    const potonganInput = document.getElementById('potongan');
+    const totalGajiSpan = document.getElementById('totalGaji');
+    const detailGajiDiv = document.getElementById('detailGaji');
+
+    // Tampilkan detail gaji saat karyawan dipilih
+    karyawanSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const gajiPokok = selectedOption.getAttribute('data-gaji');
+        
+        if (gajiPokok) {
+            gajiPokokInput.value = gajiPokok;
+            detailGajiDiv.style.display = 'block';
+            hitungTotalGaji();
+        } else {
+            detailGajiDiv.style.display = 'none';
+        }
+    });
+
+    // Hitung total gaji saat input berubah
+    function hitungTotalGaji() {
+        const gajiPokok = parseFloat(gajiPokokInput.value) || 0;
+        const tunjangan = parseFloat(tunjanganInput.value) || 0;
+        const bonus = parseFloat(bonusInput.value) || 0;
+        const potongan = parseFloat(potonganInput.value) || 0;
+        
+        const totalGaji = gajiPokok + tunjangan + bonus - potongan;
+        
+        // Format ke Rupiah
+        totalGajiSpan.textContent = 'Rp ' + totalGaji.toLocaleString('id-ID');
+    }
+
+    // Event listeners untuk input
+    tunjanganInput.addEventListener('input', hitungTotalGaji);
+    bonusInput.addEventListener('input', hitungTotalGaji);
+    potonganInput.addEventListener('input', hitungTotalGaji);
+
+    // Konfirmasi hapus
+    const deleteForms = document.querySelectorAll('form[onsubmit]');
+    deleteForms.forEach(form => {
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            if (confirm('Apakah Anda yakin ingin menghapus slip gaji ini?')) {
+                this.submit();
+            }
+        };
+    });
+});
+
+// Print semua slip gaji - PERBAIKAN DI SINI
+function printAllSlip() {
+    if (confirm('Print semua slip gaji?')) {
+        window.open('{{ url_for("main.print_semua_slip_gaji") }}', '_blank');
+    }
+}
+
+// Export ke Excel
+function exportToExcel() {
+    const table = document.getElementById('dataTable');
+    const html = table.outerHTML;
+    const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+    const link = document.createElement('a');
+    link.download = `Slip_Gaji_${new Date().toLocaleDateString('id-ID')}.xls`;
+    link.href = url;
+    link.click();
+}
+</script>
+{% endblock %}

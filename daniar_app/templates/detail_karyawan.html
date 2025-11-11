@@ -1,0 +1,1209 @@
+<!-- templates/detail_karyawan.html -->
+{% extends "base.html" %}
+
+{% block title %}Detail Karyawan - {{ karyawan.nama }} - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Modern Orange Theme --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --info-blue: #3498db;
+        --warning-yellow: #f39c12;
+        --danger-red: #e74c3c;
+    }
+
+    body {
+        background: var(--light-bg);
+        color: var(--dark-bg);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .page-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Cards */
+    .card-modern {
+        background: var(--white);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header-modern {
+        background: var(--white);
+        border-bottom: 2px solid var(--light-orange);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+
+    .card-body-padded {
+        padding: 1.5rem;
+    }
+
+    /* Profile Section */
+    .profile-section {
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        background: var(--primary-orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        margin: 0 auto 1rem;
+        border: 4px solid var(--light-orange);
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+    }
+
+    .employee-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+    }
+
+    .employee-position {
+        font-size: 1rem;
+        color: var(--primary-orange);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    /* Status Badge */
+    .badge-modern {
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+
+    .badge-tetap { background: var(--success-green); color: white; }
+    .badge-kontrak { background: var(--info-blue); color: white; }
+    .badge-percobaan { background: var(--warning-yellow); color: white; }
+    .badge-harian { background: #95a5a6; color: white; }
+
+    /* Info Grid */
+    .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        color: var(--dark-bg);
+        font-size: 0.9rem;
+    }
+
+    .info-label i {
+        color: var(--primary-orange);
+        width: 20px;
+        text-align: center;
+    }
+
+    .info-value {
+        color: #666;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .money-value {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: var(--success-green);
+    }
+
+    /* Buttons */
+    .btn-modern {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary-orange);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--dark-orange);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-success-modern {
+        background: var(--success-green);
+        color: white;
+    }
+
+    .btn-success-modern:hover {
+        background: #00a085;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-danger-modern {
+        background: var(--danger-red);
+        color: white;
+    }
+
+    .btn-danger-modern:hover {
+        background: #c0392b;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary-modern {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #7f8c8d;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-title h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+        margin: 0;
+    }
+
+    .page-title p {
+        color: #666;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Contact Section */
+    .contact-section {
+        margin-top: 1rem;
+    }
+
+    .address-box {
+        background: var(--light-orange);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1rem;
+    }
+
+    .address-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--dark-bg);
+        margin-bottom: 0.75rem;
+    }
+
+    .address-text {
+        color: #666;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Timestamp */
+    .timestamp {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+
+    .timestamp-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+    .timestamp-label {
+        color: var(--dark-bg);
+        font-weight: 600;
+    }
+
+    .timestamp-value {
+        color: #666;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+    }
+
+    /* Description Box */
+    .description-box {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.25rem;
+        min-height: 120px;
+    }
+
+    .description-text {
+        color: #666;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Print-only elements */
+    .print-only {
+        display: none;
+    }
+
+    /* ===== PROFESSIONAL PRINT STYLES ===== */
+    @media print {
+        /* Reset & Hide Elements */
+        .no-print,
+        .btn-modern,
+        .header-actions,
+        .action-buttons,
+        .quick-actions,
+        .modal,
+        .navbar,
+        footer {
+            display: none !important;
+        }
+        
+        /* Base Print Styles */
+        body {
+            background: white !important;
+            color: black !important;
+            font-size: 12pt;
+            line-height: 1.4;
+            font-family: "Times New Roman", Times, serif;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        
+        .page-container {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* Print Header */
+        .print-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px double #333;
+            padding-bottom: 15px;
+            page-break-after: avoid;
+        }
+        
+        .print-header h1 {
+            font-size: 20pt !important;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: black !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            line-height: 1.4;
+        }
+        
+        .print-header .document-info {
+            font-size: 10pt;
+            color: #777;
+            margin-top: 5px;
+        }
+        
+        /* Print Watermark */
+        .print-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 72pt;
+            color: rgba(0,0,0,0.03);
+            z-index: -1;
+            pointer-events: none;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Cards for Print */
+        .card-modern {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+            border-left: 4px solid #333 !important;
+            margin-bottom: 20px !important;
+            page-break-inside: avoid;
+            background: white !important;
+            border-radius: 4px !important;
+        }
+        
+        .card-header-modern {
+            background: #f8f8f8 !important;
+            color: black !important;
+            border-bottom: 1px solid #ddd !important;
+            padding: 12px 15px !important;
+            font-size: 13pt;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0 !important;
+        }
+        
+        .card-body-padded {
+            padding: 15px !important;
+        }
+        
+        /* Profile Section for Print */
+        .profile-section {
+            text-align: left !important;
+            padding: 0 !important;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px !important;
+        }
+        
+        .profile-avatar {
+            width: 80px !important;
+            height: 80px !important;
+            border: 2px solid #ccc !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            border-radius: 4px !important;
+            font-size: 2rem !important;
+            background: #f8f8f8 !important;
+        }
+        
+        .profile-avatar img {
+            border-radius: 4px !important;
+        }
+        
+        .employee-name {
+            font-size: 16pt !important;
+            font-weight: bold;
+            margin: 0 0 5px 0 !important;
+            color: black !important;
+        }
+        
+        .employee-position {
+            font-size: 12pt !important;
+            color: #555 !important;
+            margin: 0 0 8px 0 !important;
+            font-weight: 600;
+        }
+        
+        .badge-modern {
+            background: #f8f8f8 !important;
+            color: black !important;
+            border: 1px solid #999 !important;
+            padding: 4px 12px !important;
+            font-size: 9pt !important;
+            border-radius: 12px !important;
+            font-weight: 600;
+        }
+        
+        /* Info Grid for Print */
+        .info-grid {
+            gap: 8px !important;
+        }
+        
+        .info-item {
+            background: #fafafa !important;
+            border: 1px solid #eee !important;
+            padding: 10px 12px !important;
+            margin-bottom: 6px;
+            page-break-inside: avoid;
+            border-radius: 4px !important;
+            display: flex !important;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-size: 10.5pt !important;
+            color: #333 !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-label i {
+            display: none !important;
+        }
+        
+        .info-value {
+            font-size: 10.5pt !important;
+            color: black !important;
+            font-weight: normal !important;
+            text-align: right;
+        }
+        
+        .money-value {
+            font-family: "Courier New", monospace !important;
+            color: black !important;
+            font-weight: bold;
+            font-size: 11pt !important;
+        }
+        
+        /* Layout for Print */
+        .row {
+            display: block !important;
+            margin: 0 !important;
+        }
+        
+        .col-xl-4, 
+        .col-lg-5,
+        .col-xl-8,
+        .col-lg-7,
+        .col-md-6 {
+            width: 100% !important;
+            float: none !important;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        
+        /* Address Box for Print */
+        .address-box {
+            background: #fafafa !important;
+            border: 1px solid #ddd !important;
+            border-left: 4px solid #666 !important;
+            padding: 12px !important;
+            margin-top: 10px !important;
+            border-radius: 4px !important;
+        }
+        
+        .address-label {
+            font-size: 10.5pt !important;
+            color: #333 !important;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .address-label i {
+            display: none !important;
+        }
+        
+        .address-text {
+            font-size: 10.5pt !important;
+            color: black !important;
+            line-height: 1.5;
+        }
+        
+        /* Description Box for Print */
+        .description-box {
+            background: #fafafa !important;
+            border: 1px solid #ddd !important;
+            padding: 12px !important;
+            min-height: auto !important;
+            border-radius: 4px !important;
+        }
+        
+        .description-text {
+            font-size: 10.5pt !important;
+            color: black !important;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        /* Timestamp for Print */
+        .timestamp {
+            background: #fafafa !important;
+            border: 1px solid #ddd !important;
+            padding: 12px !important;
+            border-radius: 4px !important;
+        }
+        
+        .timestamp-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .timestamp-item:last-child {
+            border-bottom: none;
+        }
+        
+        .timestamp-label {
+            font-size: 10.5pt !important;
+            color: #333 !important;
+            font-weight: 600;
+        }
+        
+        .timestamp-value {
+            font-size: 10.5pt !important;
+            color: black !important;
+        }
+        
+        /* Print Footer */
+        .print-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding: 10px 0;
+            background: white;
+            page-break-after: always;
+        }
+        
+        .print-footer .page-info {
+            margin-top: 3px;
+            font-style: italic;
+        }
+        
+        /* Signature Section */
+        .signature-section {
+            margin-top: 40px;
+            page-break-before: always;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 200px;
+            margin-top: 60px;
+        }
+        
+        .signature-label {
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Show print-only elements */
+        .print-only {
+            display: block !important;
+        }
+        
+        /* Hide regular header */
+        .page-header {
+            display: none !important;
+        }
+        
+        /* Table-like structure */
+        .info-item:nth-child(even) {
+            background: #f8f8f8 !important;
+        }
+        
+        .info-item:nth-child(odd) {
+            background: #fefefe !important;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 1rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+
+        .employee-name {
+            font-size: 1.25rem;
+        }
+
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-body-padded {
+            padding: 1.25rem;
+        }
+
+        .card-header-modern {
+            padding: 1rem 1.25rem;
+        }
+
+        .btn-modern {
+            padding: 0.625rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Print Header (Hanya muncul saat print) -->
+    <div class="print-only print-header">
+        <h1>PT. DANIAR FURNITURE ART</h1>
+        <div class="company-info">
+            <p><strong>DATA DETAIL KARYAWAN</strong></p>
+            <p>Jl. Mesjid Kp. Kaum No.20, RT.01/RW.11, Ciparigi, Kota Bogor</p>
+        </div>
+        <div class="document-info">
+            <p>Dicetak pada: {{ now().strftime('%d %B %Y - %H:%M') }} | Dokumen: KRY/{{ karyawan.nik }}/{{ now().strftime('%Y%m%d') }}</p>
+        </div>
+    </div>
+
+    <!-- Print Watermark -->
+    <div class="print-only print-watermark">
+        DOKUMEN RESMI
+    </div>
+
+    <!-- Page Header (Tampilan Normal) -->
+    <div class="page-header no-print">
+        <div class="page-title">
+            <h1>
+                <i class="fas fa-user-tie me-2" style="color: var(--primary-orange);"></i>
+                Detail Karyawan
+            </h1>
+            <p>Informasi lengkap data karyawan</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-success-modern btn-modern" onclick="window.print()">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+            <a href="{{ url_for('main.karyawan') }}" class="btn btn-secondary-modern btn-modern">
+                <i class="fas fa-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile & Contact -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- Profile Card -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h6 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Profile Karyawan
+                    </h6>
+                </div>
+                <div class="card-body-padded">
+                    <div class="profile-section">
+                        <div class="profile-avatar">
+                            {% if karyawan.foto_profil %}
+                                <img src="{{ url_for('static', filename=karyawan.foto_profil) }}" 
+                                     alt="{{ karyawan.nama }}"
+                                     onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\"fas fa-user-tie\"></i>';">
+                            {% else %}
+                                <i class="fas fa-user-tie"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="employee-name">{{ karyawan.nama }}</div>
+                        <div class="employee-position">{{ karyawan.jabatan }}</div>
+                        
+                        <!-- Status Badge -->
+                        {% if karyawan.status == 'TETAP' %}
+                            <span class="badge-modern badge-tetap">{{ karyawan.status }}</span>
+                        {% elif karyawan.status == 'KONTRAK' %}
+                            <span class="badge-modern badge-kontrak">{{ karyawan.status }}</span>
+                        {% elif karyawan.status == 'PERCOBAAN' %}
+                            <span class="badge-modern badge-percobaan">{{ karyawan.status }}</span>
+                        {% elif karyawan.status == 'HARIAN' %}
+                            <span class="badge-modern badge-harian">{{ karyawan.status }}</span>
+                        {% else %}
+                            <span class="badge-modern badge-tetap">{{ karyawan.status }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-id-badge"></i>NIK
+                            </span>
+                            <span class="info-value">{{ karyawan.nik or '-' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-building"></i>Divisi
+                            </span>
+                            <span class="info-value">{{ karyawan.divisi or '-' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-money-bill-wave"></i>Gaji Pokok
+                            </span>
+                            <span class="info-value money-value">
+                                {{ karyawan.gaji_pokok|format_rupiah }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-calendar-alt"></i>Lama Kerja
+                            </span>
+                            <span class="info-value">
+                                {% if karyawan.tanggal_masuk %}
+                                    {% set today = current_date %}
+                                    {% set lama_kerja = today - karyawan.tanggal_masuk %}
+                                    {% set tahun = lama_kerja.days // 365 %}
+                                    {% set bulan = (lama_kerja.days % 365) // 30 %}
+                                    {{ tahun }} tahun {{ bulan }} bulan
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons no-print">
+                        <a href="{{ url_for('main.edit_karyawan', id=karyawan.id) }}" class="btn btn-primary-modern btn-modern">
+                            <i class="fas fa-edit me-1"></i> Edit Data
+                        </a>
+                        <button type="button" class="btn btn-danger-modern btn-modern" data-toggle="modal" data-target="#deleteModal">
+                            <i class="fas fa-trash me-1"></i> Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Card -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h6 class="mb-0">
+                        <i class="fas fa-address-book me-2"></i>Kontak
+                    </h6>
+                </div>
+                <div class="card-body-padded">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-phone"></i>Telepon
+                            </span>
+                            <span class="info-value">{{ karyawan.no_telepon or '-' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="fas fa-envelope"></i>Email
+                            </span>
+                            <span class="info-value">{{ karyawan.email or '-' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-section">
+                        <div class="address-box">
+                            <div class="address-label">
+                                <i class="fas fa-map-marker-alt"></i>Alamat
+                            </div>
+                            <p class="address-text">
+                                {{ karyawan.alamat or 'Tidak ada alamat' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div class="col-xl-8 col-lg-7">
+            <!-- Personal Information -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Informasi Pribadi
+                    </h6>
+                </div>
+                <div class="card-body-padded">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-birthday-cake"></i>Tempat Lahir
+                                    </span>
+                                    <span class="info-value">{{ karyawan.tempat_lahir or '-' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-graduation-cap"></i>Pendidikan
+                                    </span>
+                                    <span class="info-value">{{ karyawan.pendidikan_terakhir or '-' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-sign-in-alt"></i>Tanggal Masuk
+                                    </span>
+                                    <span class="info-value">
+                                        {% if karyawan.tanggal_masuk %}
+                                            {{ karyawan.tanggal_masuk.strftime('%d %B %Y') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-calendar-day"></i>Tanggal Lahir
+                                    </span>
+                                    <span class="info-value">
+                                        {% if karyawan.tanggal_lahir %}
+                                            {{ karyawan.tanggal_lahir.strftime('%d %B %Y') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-heart"></i>Status Perkawinan
+                                    </span>
+                                    <span class="info-value">{{ karyawan.status_perkawinan or '-' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-clock"></i>Bergabung Sejak
+                                    </span>
+                                    <span class="info-value">
+                                        {% if karyawan.tanggal_masuk %}
+                                            {% set today = current_date %}
+                                            {% set lama_kerja = today - karyawan.tanggal_masuk %}
+                                            {% set tahun = lama_kerja.days // 365 %}
+                                            {% set bulan = (lama_kerja.days % 365) // 30 %}
+                                            {{ tahun }} tahun {{ bulan }} bulan
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank & Pajak -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h6 class="mb-0">
+                        <i class="fas fa-university me-2"></i>Informasi Bank & Pajak
+                    </h6>
+                </div>
+                <div class="card-body-padded">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-landmark"></i>Bank
+                                    </span>
+                                    <span class="info-value">{{ karyawan.bank or '-' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-file-invoice-dollar"></i>NPWP
+                                    </span>
+                                    <span class="info-value">{{ karyawan.npwp or '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="fas fa-credit-card"></i>No. Rekening
+                                    </span>
+                                    <span class="info-value">{{ karyawan.no_rekening or '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info & Actions -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card-modern h-100">
+                        <div class="card-header-modern">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Keterangan
+                            </h6>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="description-box">
+                                <p class="description-text">
+                                    {% if karyawan.keterangan %}
+                                        {{ karyawan.keterangan }}
+                                    {% else %}
+                                        <span class="text-muted">Tidak ada keterangan tambahan</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-modern h-100">
+                        <div class="card-header-modern">
+                            <h6 class="mb-0">
+                                <i class="fas fa-history me-2"></i>Timestamps
+                            </h6>
+                        </div>
+                        <div class="card-body-padded">
+                            <div class="timestamp">
+                                <div class="timestamp-item">
+                                    <span class="timestamp-label">Dibuat:</span>
+                                    <span class="timestamp-value">
+                                        {% if karyawan.created_at %}
+                                            {{ karyawan.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="timestamp-item">
+                                    <span class="timestamp-label">Diupdate:</span>
+                                    <span class="timestamp-value">
+                                        {% if karyawan.updated_at %}
+                                            {{ karyawan.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-modern no-print">
+                <div class="card-body-padded">
+                    <div class="quick-actions">
+                        <a href="{{ url_for('main.slip_gaji_karyawan', id=karyawan.id) }}" class="btn btn-success-modern btn-modern">
+                            <i class="fas fa-file-invoice-dollar me-1"></i>Slip Gaji
+                        </a>
+                        <a href="{{ url_for('main.edit_karyawan', id=karyawan.id) }}" class="btn btn-primary-modern btn-modern">
+                            <i class="fas fa-edit me-1"></i>Edit Data
+                        </a>
+                        <a href="{{ url_for('main.karyawan') }}" class="btn btn-secondary-modern btn-modern">
+                            <i class="fas fa-list me-1"></i>Daftar Karyawan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature Section untuk Dokumen Resmi -->
+    <div class="print-only signature-section">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="signature-line"></div>
+                <div class="signature-label">Karyawan</div>
+            </div>
+            <div class="col-md-6">
+                <div class="signature-line"></div>
+                <div class="signature-label">HRD Manager</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Footer -->
+    <div class="print-only print-footer">
+        <p>Dokumen ini dicetak dari Sistem Manajemen Karyawan PT. Daniar Furniture Art</p>
+        <p class="page-info">Halaman <span class="page-number"></span> - Data bersifat rahasia dan hanya untuk keperluan internal</p>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Konfirmasi Hapus
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-trash-alt fa-2x text-danger mb-3"></i>
+                <h6 class="font-weight-bold mb-2">Hapus Data Karyawan?</h6>
+                <p class="small mb-3">Anda akan menghapus:</p>
+                <div class="alert alert-warning small">
+                    <strong>{{ karyawan.nama }}</strong><br>
+                    <small>{{ karyawan.jabatan }}</small>
+                </div>
+                <p class="text-danger small font-weight-bold">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    Tindakan ini tidak dapat dibatalkan!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Batal
+                </button>
+                <form action="{{ url_for('main.hapus_karyawan', id=karyawan.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger-modern btn-modern">
+                        <i class="fas fa-trash me-1"></i>Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Professional Print Enhancement
+function enhancePrint() {
+    // Add professional print styles
+    const printStyle = document.createElement('style');
+    printStyle.innerHTML = `
+        @page {
+            margin: 20mm;
+            size: A4;
+            @bottom-center {
+                content: "Halaman " counter(page) " dari " counter(pages);
+                font-size: 9pt;
+                color: #666;
+                font-family: "Times New Roman", Times, serif;
+            }
+        }
+        
+        @page :first {
+            margin-top: 15mm;
+            @bottom-center {
+                content: none;
+            }
+        }
+        
+        .page-number:after {
+            content: counter(page);
+        }
+    `;
+    document.head.appendChild(printStyle);
+    
+    // Update page numbers
+    const pageNumbers = document.querySelectorAll('.page-number');
+    pageNumbers.forEach(el => {
+        el.textContent = '1'; // Will be updated by CSS counter
+    });
+}
+
+// Auto-enhance when printing
+document.addEventListener('DOMContentLoaded', function() {
+    const printBtn = document.querySelector('button[onclick="window.print()"]');
+    if (printBtn) {
+        printBtn.addEventListener('click', function() {
+            setTimeout(enhancePrint, 100);
+        });
+    }
+    
+    // Enhance when print dialog opens
+    window.addEventListener('beforeprint', enhancePrint);
+    
+    // Delete confirmation
+    const deleteForm = document.querySelector('form[action*="hapus_karyawan"]');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function(e) {
+            if (!confirm('Apakah Anda yakin ingin menghapus data karyawan {{ karyawan.nama }}?')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

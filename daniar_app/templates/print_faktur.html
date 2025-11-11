@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faktur {{ faktur.nomor_faktur }} - PT. Daniar Furniture Art</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #f77f00;
+            padding-bottom: 20px;
+        }
+        
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f77f00;
+            margin-bottom: 5px;
+        }
+        
+        .company-info {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .invoice-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .info-section {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #f77f00;
+            margin-bottom: 5px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .table th {
+            background-color: #f77f00;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .table td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .total-section {
+            text-align: right;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #f77f00;
+        }
+        
+        .total-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+        }
+        
+        .signature {
+            text-align: center;
+            width: 200px;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin: 40px 0 10px 0;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 15px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .table {
+                page-break-inside: avoid;
+            }
+            
+            .total-section {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .money {
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+
+        /* Share Buttons */
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-email {
+            background: linear-gradient(135deg, #ea4335, #d14836);
+        }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #4285f4, #346ac1);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #f77f00, #d35400);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #f77f00;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f77f00, #d35400);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">PT. Daniar Furniture Art</div>
+        <div class="company-info">
+            Jln.Mesjid Kp.Kaum No.20, RT.01/RW.11, Ciparigi, Kota Bogor | Telp: +62 857-7765-3187<br>
+            Email: daniarfurnitureart@gmail.com
+        </div>
+        <div class="invoice-title">FAKTUR PENJUALAN</div>
+    </div>
+
+    <div class="invoice-info">
+        <div class="info-section">
+            <div class="info-label">INFORMASI FAKTUR</div>
+            <div><strong>Nomor:</strong> {{ faktur.nomor_faktur }}</div>
+            <div><strong>Tanggal:</strong> {{ faktur.tanggal_faktur.strftime('%d/%m/%Y') }}</div>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-label">INFORMASI PELANGGAN</div>
+            <div><strong>Nama:</strong> {{ faktur.nama_pelanggan }}</div>
+            <div><strong>Alamat:</strong> {{ faktur.alamat_pelanggan or '-' }}</div>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="5%">No</th>
+                <th width="45%">Nama Barang</th>
+                <th width="15%">Jumlah</th>
+                <th width="20%">Harga Satuan</th>
+                <th width="15%">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in faktur.items %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.nama_barang }}</td>
+                <td class="text-right">{{ item.jumlah }}</td>
+                <td class="money">Rp {{ "{:,.0f}".format(item.harga) }}</td>
+                <td class="money">Rp {{ "{:,.0f}".format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-amount">TOTAL: Rp {{ "{:,.0f}".format(faktur.total_harga) }}</div>
+    </div>
+
+    {% if faktur.keterangan %}
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+        <strong>Keterangan:</strong> {{ faktur.keterangan }}
+    </div>
+    {% endif %}
+
+    <div class="signature-section">
+        <div class="signature">
+            <div>Hormat Kami,</div>
+            <div class="signature-line"></div>
+            <div>PT. Daniar Furniture Art</div>
+        </div>
+        <div class="signature">
+            <div>Penerima,</div>
+            <div class="signature-line"></div>
+            <div>{{ faktur.nama_pelanggan }}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Terima kasih atas kepercayaan Anda!</p>
+        <p>Faktur ini dicetak pada: <span id="print-time"></span></p>
+    </div>
+
+    <!-- Share Buttons -->
+    <div class="no-print share-buttons">
+        <button onclick="window.print()" class="share-btn btn-print">
+            🖨️ Print Faktur
+        </button>
+        <button onclick="openEmailModal()" class="share-btn btn-email">
+            📧 Kirim Email
+        </button>
+        <button onclick="openWhatsAppModal()" class="share-btn btn-whatsapp">
+            💬 Kirim WhatsApp
+        </button>
+        <button onclick="window.close()" class="share-btn" style="background: #6c757d;">
+            ❌ Tutup
+        </button>
+    </div>
+
+    <!-- Email Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📧 Kirim via Email</h3>
+                <button class="close" onclick="closeEmailModal()">&times;</button>
+            </div>
+            <form id="emailForm" method="POST" action="/faktur/{{ faktur.id }}/kirim_email">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="emailTujuan">Alamat Email Tujuan</label>
+                        <input type="email" id="emailTujuan" name="email_tujuan" class="form-control" 
+                               placeholder="contoh@email.com" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEmailModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Kirim Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- WhatsApp Modal -->
+    <div id="whatsappModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💬 Kirim via WhatsApp</h3>
+                <button class="close" onclick="closeWhatsAppModal()">&times;</button>
+            </div>
+            <form id="whatsappForm" method="POST" action="/faktur/{{ faktur.id }}/kirim_whatsapp">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="whatsappNumber">Nomor WhatsApp Tujuan</label>
+                        <input type="tel" id="whatsappNumber" name="nomor_whatsapp" class="form-control" 
+                               placeholder="6281234567890" required>
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            Format: 6281234567890 (tanpa + atau spasi)
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeWhatsAppModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E);">
+                        Kirim WhatsApp
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Set waktu cetak
+        const now = new Date();
+        const options = { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        document.getElementById('print-time').textContent = now.toLocaleDateString('id-ID', options);
+        
+        // Modal Functions
+        function openEmailModal() {
+            document.getElementById('emailModal').style.display = 'block';
+            document.getElementById('emailTujuan').focus();
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        function openWhatsAppModal() {
+            document.getElementById('whatsappModal').style.display = 'block';
+            document.getElementById('whatsappNumber').focus();
+        }
+
+        function closeWhatsAppModal() {
+            document.getElementById('whatsappModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const emailModal = document.getElementById('emailModal');
+            const whatsappModal = document.getElementById('whatsappModal');
+            
+            if (event.target === emailModal) {
+                closeEmailModal();
+            }
+            if (event.target === whatsappModal) {
+                closeWhatsAppModal();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEmailModal();
+                closeWhatsAppModal();
+                // window.close(); // Uncomment jika ingin tutup window dengan ESC
+            }
+        });
+
+        // Form validation
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('emailTujuan').value;
+            if (!email || !email.includes('@')) {
+                e.preventDefault();
+                alert('Masukkan alamat email yang valid!');
+                return false;
+            }
+        });
+
+        document.getElementById('whatsappForm').addEventListener('submit', function(e) {
+            const number = document.getElementById('whatsappNumber').value;
+            const cleanNumber = number.replace(/\D/g, '');
+            
+            if (!cleanNumber || cleanNumber.length < 10) {
+                e.preventDefault();
+                alert('Masukkan nomor WhatsApp yang valid! Minimal 10 digit.');
+                return false;
+            }
+        });
+
+        // Auto print jika diinginkan (opsional)
+        // window.onload = function() { 
+        //     window.print(); 
+        // }
+        
+        // Auto close setelah print (opsional)
+        window.onafterprint = function() {
+            // setTimeout(() => window.close(), 1000);
+        };
+    </script>
+</body>
+</html>

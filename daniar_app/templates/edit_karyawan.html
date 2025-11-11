@@ -1,0 +1,904 @@
+<!-- templates/edit_karyawan.html -->
+{% extends "base.html" %}
+
+{% block title %}Edit Karyawan - Daniar Furniture{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Modern Orange Theme --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --info-blue: #3498db;
+        --warning-yellow: #f39c12;
+        --danger-red: #e74c3c;
+    }
+
+    body {
+        background: var(--light-bg);
+        color: var(--dark-bg);
+    }
+
+    .page-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 0 0.5rem;
+    }
+
+    .page-title h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+        margin: 0;
+    }
+
+    .page-title p {
+        color: #666;
+        margin: 0.5rem 0 0 0;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary-orange);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--dark-orange);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-secondary-modern {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #7f8c8d;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-success-modern {
+        background: var(--success-green);
+        color: white;
+    }
+
+    .btn-success-modern:hover {
+        background: #00a085;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Cards */
+    .card-modern {
+        background: var(--white);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .card-header-modern {
+        background: var(--white);
+        border-bottom: 2px solid var(--light-orange);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.5rem 2rem;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+
+    .card-body-padded {
+        padding: 2rem;
+    }
+
+    /* Form Styles */
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .section-title {
+        color: var(--primary-orange);
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--light-orange);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-bg);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-orange);
+        box-shadow: 0 0 0 0.2rem rgba(247, 127, 0, 0.25);
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .input-group-text {
+        background: var(--light-orange);
+        border: 2px solid #e9ecef;
+        border-right: none;
+        color: var(--dark-orange);
+        font-weight: 600;
+    }
+
+    .form-control:focus + .input-group-text {
+        border-color: var(--primary-orange);
+    }
+
+    /* Required field indicator */
+    .required::after {
+        content: " *";
+        color: var(--danger-red);
+    }
+
+    /* Photo Upload Styles */
+    .photo-upload-section {
+        text-align: center;
+        padding: 1.5rem;
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        background: #fafafa;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .photo-upload-section:hover {
+        border-color: var(--primary-orange);
+        background: var(--light-orange);
+    }
+
+    .photo-upload-section.dragover {
+        border-color: var(--primary-orange);
+        background: var(--light-orange);
+    }
+
+    .current-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid var(--light-orange);
+        margin-bottom: 1rem;
+    }
+
+    .photo-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        background: var(--light-orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-orange);
+        font-size: 3rem;
+        margin: 0 auto 1rem;
+        border: 2px dashed var(--primary-orange);
+    }
+
+    .upload-btn {
+        background: var(--primary-orange);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .upload-btn:hover {
+        background: var(--dark-orange);
+        transform: translateY(-2px);
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-info {
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .preview-container {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .remove-photo {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--danger-red);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+    .remove-photo:hover {
+        background: #c0392b;
+        transform: scale(1.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 1rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .card-body-padded {
+            padding: 1.5rem;
+        }
+
+        .btn-modern {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.85rem;
+        }
+
+        .current-photo {
+            width: 120px;
+            height: 120px;
+        }
+
+        .photo-placeholder {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-header-modern {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+        }
+
+        .photo-upload-section {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <h1>
+                <i class="fas fa-user-edit me-2" style="color: var(--primary-orange);"></i>
+                Edit Karyawan
+            </h1>
+            <p>Perbarui data karyawan {{ karyawan.nama }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('main.karyawan') }}" class="btn btn-secondary-modern btn-modern">
+                <i class="fas fa-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Edit -->
+    <div class="card-modern">
+        <div class="card-header-modern">
+            <h6 class="mb-0">
+                <i class="fas fa-edit me-2"></i>Form Edit Data Karyawan
+            </h6>
+        </div>
+        <div class="card-body-padded">
+            <form method="POST" action="{{ url_for('main.edit_karyawan', id=karyawan.id) }}" enctype="multipart/form-data" id="editKaryawanForm">
+                <!-- Foto Profil -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-camera"></i>Foto Profil
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="photo-upload-section" id="uploadSection">
+                                {% if karyawan.foto_profil %}
+                                    <div class="preview-container">
+                                        <img src="{{ url_for('static', filename='uploads/profiles/' + karyawan.foto_profil) }}" 
+                                             alt="{{ karyawan.nama }}" 
+                                             class="current-photo"
+                                             id="photoPreview">
+                                        <button type="button" class="remove-photo" id="removePhoto" title="Hapus Foto">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-success mb-2">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Foto saat ini
+                                    </p>
+                                {% else %}
+                                    <div class="photo-placeholder">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <p class="text-muted mb-2">Belum ada foto profil</p>
+                                {% endif %}
+                                
+                                <button type="button" class="upload-btn" id="uploadTrigger">
+                                    <i class="fas fa-upload me-1"></i>
+                                    {% if karyawan.foto_profil %}Ganti Foto{% else %}Upload Foto{% endif %}
+                                </button>
+                                <input type="file" class="file-input" id="foto_profil" name="foto_profil" 
+                                       accept="image/*" onchange="previewImage(this)">
+                                
+                                <div class="file-info">
+                                    <small>
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Format: JPG, PNG, JPEG (Maks. 2MB)
+                                    </small>
+                                </div>
+                                <input type="hidden" id="remove_photo" name="remove_photo" value="false">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-lightbulb me-1"></i>Tips Foto Profil
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Gunakan foto close-up wajah</li>
+                                    <li>Background polos dan rapi</li>
+                                    <li>Pakaian formal atau seragam</li>
+                                    <li>Ekspresi wajah natural</li>
+                                    <li>Ukuran optimal: 400x400 pixels</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Utama -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-id-card"></i>Data Utama
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nik" class="form-label required">NIK</label>
+                                <input type="text" class="form-control" id="nik" name="nik" 
+                                       value="{{ karyawan.nik or '' }}" required
+                                       placeholder="Nomor Induk Karyawan">
+                                <small class="form-text">Nomor identitas karyawan yang unik</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nama" class="form-label required">Nama Lengkap</label>
+                                <input type="text" class="form-control" id="nama" name="nama" 
+                                       value="{{ karyawan.nama }}" required
+                                       placeholder="Nama lengkap karyawan">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="jabatan" class="form-label required">Jabatan</label>
+                                <input type="text" class="form-control" id="jabatan" name="jabatan" 
+                                       value="{{ karyawan.jabatan }}" required
+                                       placeholder="Posisi/jabatan">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="divisi" class="form-label">Divisi</label>
+                                <select class="form-control" id="divisi" name="divisi">
+                                    <option value="">Pilih Divisi</option>
+                                    <option value="Research And Development" {% if karyawan.divisi == 'RND' %}selected{% endif %}>Research And Development</option>
+                                    <option value="PRODUKSI" {% if karyawan.divisi == 'PRODUKSI' %}selected{% endif %}>Produksi</option>
+                                    <option value="FINANCE" {% if karyawan.divisi == 'FINANCE' %}selected{% endif %}>Finance</option>
+                                    <option value="MARKETING" {% if karyawan.divisi == 'MARKETING' %}selected{% endif %}>Marketing</option>
+                                    <option value="HRD" {% if karyawan.divisi == 'HRD' %}selected{% endif %}>HRD</option>
+                                    <option value="GUDANG" {% if karyawan.divisi == 'GUDANG' %}selected{% endif %}>Gudang</option>
+                                    <option value="ADMIN" {% if karyawan.divisi == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                    <option value="LAINNYA" {% if karyawan.divisi == 'LAINNYA' %}selected{% endif %}>Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status" class="form-label required">Status Karyawan</label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="TETAP" {% if karyawan.status == 'TETAP' %}selected{% endif %}>Tetap</option>
+                                    <option value="KONTRAK" {% if karyawan.status == 'KONTRAK' %}selected{% endif %}>Kontrak</option>
+                                    <option value="PERCOBAAN" {% if karyawan.status == 'PERCOBAAN' %}selected{% endif %}>Percobaan</option>
+                                    <option value="HARIAN" {% if karyawan.status == 'HARIAN' %}selected{% endif %}>Harian</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="gaji_pokok" class="form-label required">Gaji Pokok</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp</span>
+                                    </div>
+                                    <!-- Ubah type menjadi number untuk menghindari masalah konversi -->
+                                    <input type="number" class="form-control" id="gaji_pokok" name="gaji_pokok" 
+                                           value="{{ karyawan.gaji_pokok }}" required min="0" step="1000"
+                                           placeholder="0">
+                                </div>
+                                <small class="form-text">Masukkan angka tanpa pemisah ribuan (contoh: 5000000)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Pribadi -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-user"></i>Informasi Pribadi
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tempat_lahir" class="form-label">Tempat Lahir</label>
+                                <input type="text" class="form-control" id="tempat_lahir" name="tempat_lahir" 
+                                       value="{{ karyawan.tempat_lahir or '' }}"
+                                       placeholder="Kota tempat lahir">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
+                                <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" 
+                                       value="{{ karyawan.tanggal_lahir.strftime('%Y-%m-%d') if karyawan.tanggal_lahir else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="alamat" class="form-label">Alamat Lengkap</label>
+                                <textarea class="form-control" id="alamat" name="alamat" rows="3" 
+                                          placeholder="Alamat lengkap tempat tinggal">{{ karyawan.alamat or '' }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="no_telepon" class="form-label">No. Telepon</label>
+                                <input type="tel" class="form-control" id="no_telepon" name="no_telepon" 
+                                       value="{{ karyawan.no_telepon or '' }}"
+                                       placeholder="081234567890">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ karyawan.email or '' }}"
+                                       placeholder="email@example.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Bank & Pajak -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-university"></i>Informasi Bank & Pajak
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="bank" class="form-label">Bank</label>
+                                <select class="form-control" id="bank" name="bank">
+                                    <option value="">Pilih Bank</option>
+                                    <option value="BCA" {% if karyawan.bank == 'BCA' %}selected{% endif %}>BCA</option>
+                                    <option value="BRI" {% if karyawan.bank == 'BRI' %}selected{% endif %}>BRI</option>
+                                    <option value="BNI" {% if karyawan.bank == 'BNI' %}selected{% endif %}>BNI</option>
+                                    <option value="MANDIRI" {% if karyawan.bank == 'MANDIRI' %}selected{% endif %}>Mandiri</option>
+                                    <option value="BTN" {% if karyawan.bank == 'BTN' %}selected{% endif %}>BTN</option>
+                                    <option value="DANAMON" {% if karyawan.bank == 'DANAMON' %}selected{% endif %}>Danamon</option>
+                                    <option value="CIMB" {% if karyawan.bank == 'CIMB' %}selected{% endif %}>CIMB</option>
+                                    <option value="LAINNYA" {% if karyawan.bank == 'LAINNYA' %}selected{% endif %}>Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="no_rekening" class="form-label">No. Rekening</label>
+                                <input type="text" class="form-control" id="no_rekening" name="no_rekening" 
+                                       value="{{ karyawan.no_rekening or '' }}"
+                                       placeholder="Nomor rekening bank">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="npwp" class="form-label">NPWP</label>
+                                <input type="text" class="form-control" id="npwp" name="npwp" 
+                                       value="{{ karyawan.npwp or '' }}"
+                                       placeholder="00.000.000.0-000.000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Lainnya -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>Informasi Lainnya
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="pendidikan_terakhir" class="form-label">Pendidikan Terakhir</label>
+                                <select class="form-control" id="pendidikan_terakhir" name="pendidikan_terakhir">
+                                    <option value="">Pilih Pendidikan</option>
+                                    <option value="SD" {% if karyawan.pendidikan_terakhir == 'SD' %}selected{% endif %}>SD</option>
+                                    <option value="SMP" {% if karyawan.pendidikan_terakhir == 'SMP' %}selected{% endif %}>SMP</option>
+                                    <option value="SMA/SMK" {% if karyawan.pendidikan_terakhir == 'SMA/SMK' %}selected{% endif %}>SMA/SMK</option>
+                                    <option value="D3" {% if karyawan.pendidikan_terakhir == 'D3' %}selected{% endif %}>D3</option>
+                                    <option value="S1" {% if karyawan.pendidikan_terakhir == 'S1' %}selected{% endif %}>S1</option>
+                                    <option value="S2" {% if karyawan.pendidikan_terakhir == 'S2' %}selected{% endif %}>S2</option>
+                                    <option value="S3" {% if karyawan.pendidikan_terakhir == 'S3' %}selected{% endif %}>S3</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status_perkawinan" class="form-label">Status Perkawinan</label>
+                                <select class="form-control" id="status_perkawinan" name="status_perkawinan">
+                                    <option value="">Pilih Status</option>
+                                    <option value="BELUM MENIKAH" {% if karyawan.status_perkawinan == 'BELUM MENIKAH' %}selected{% endif %}>Belum Menikah</option>
+                                    <option value="MENIKAH" {% if karyawan.status_perkawinan == 'MENIKAH' %}selected{% endif %}>Menikah</option>
+                                    <option value="CERAI" {% if karyawan.status_perkawinan == 'CERAI' %}selected{% endif %}>Cerai</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tanggal_masuk" class="form-label required">Tanggal Masuk</label>
+                                <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk" 
+                                       value="{{ karyawan.tanggal_masuk.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="keterangan" class="form-label">Keterangan Tambahan</label>
+                                <textarea class="form-control" id="keterangan" name="keterangan" rows="3"
+                                          placeholder="Catatan tambahan tentang karyawan">{{ karyawan.keterangan or '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('main.karyawan') }}" class="btn btn-secondary-modern btn-modern">
+                                <i class="fas fa-times me-1"></i>Batal
+                            </a>
+                            <button type="submit" class="btn btn-primary-modern btn-modern" id="submitBtn">
+                                <i class="fas fa-save me-1"></i>Update Data Karyawan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Photo Upload Functionality
+    const uploadTrigger = document.getElementById('uploadTrigger');
+    const fileInput = document.getElementById('foto_profil');
+    const uploadSection = document.getElementById('uploadSection');
+    const removePhotoBtn = document.getElementById('removePhoto');
+    const removePhotoInput = document.getElementById('remove_photo');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Trigger file input when upload button is clicked
+    if (uploadTrigger && fileInput) {
+        uploadTrigger.addEventListener('click', function() {
+            fileInput.click();
+        });
+    }
+
+    // Drag and drop functionality
+    if (uploadSection) {
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                previewImage(fileInput);
+            }
+        });
+    }
+
+    // Remove photo functionality
+    if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', function() {
+            if (confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
+                // Show placeholder
+                const placeholder = document.createElement('div');
+                placeholder.className = 'photo-placeholder';
+                placeholder.innerHTML = '<i class="fas fa-user"></i>';
+                
+                uploadSection.querySelector('.preview-container').remove();
+                uploadSection.insertBefore(placeholder, uploadTrigger);
+                
+                // Update button text
+                uploadTrigger.innerHTML = '<i class="fas fa-upload me-1"></i>Upload Foto';
+                
+                // Clear file input
+                fileInput.value = '';
+                
+                // Set remove flag
+                removePhotoInput.value = 'true';
+                
+                // Show message
+                const message = document.createElement('p');
+                message.className = 'text-muted mb-2';
+                message.innerHTML = 'Foto akan dihapus saat data disimpan';
+                uploadSection.insertBefore(message, uploadTrigger);
+            }
+        });
+    }
+
+    // Form validation
+    const form = document.getElementById('editKaryawanForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Validasi required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Harap isi semua field yang wajib diisi!');
+                return;
+            }
+
+            // Validasi gaji pokok
+            const gajiInput = document.getElementById('gaji_pokok');
+            if (gajiInput && (isNaN(parseFloat(gajiInput.value)) || parseFloat(gajiInput.value) <= 0)) {
+                e.preventDefault();
+                alert('Gaji pokok harus berupa angka yang valid dan lebih dari 0!');
+                gajiInput.focus();
+                return;
+            }
+
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Memproses...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    // Auto-format NPWP
+    const npwpInput = document.getElementById('npwp');
+    if (npwpInput) {
+        npwpInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                value = value.substring(0, 15);
+                let formatted = '';
+                for (let i = 0; i < value.length; i++) {
+                    if (i === 2 || i === 5 || i === 8 || i === 9 || i === 12) {
+                        formatted += '.';
+                    }
+                    formatted += value[i];
+                }
+                this.value = formatted;
+            }
+        });
+    }
+
+    // Set max date untuk tanggal masuk dan tanggal lahir
+    const today = new Date().toISOString().split('T')[0];
+    const tanggalMasukInput = document.getElementById('tanggal_masuk');
+    const tanggalLahirInput = document.getElementById('tanggal_lahir');
+    
+    if (tanggalMasukInput) {
+        tanggalMasukInput.max = today;
+    }
+    if (tanggalLahirInput) {
+        tanggalLahirInput.max = today;
+    }
+});
+
+// Image preview function
+function previewImage(input) {
+    const file = input.files[0];
+    if (file) {
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Ukuran file terlalu besar. Maksimal 2MB.');
+            input.value = '';
+            return;
+        }
+
+        // Check file type
+        if (!file.type.match('image/jpeg') && !file.type.match('image/png') && !file.type.match('image/jpg')) {
+            alert('Format file tidak didukung. Gunakan JPG, PNG, atau JPEG.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const uploadSection = document.getElementById('uploadSection');
+            
+            // Remove existing preview or placeholder
+            const existingPreview = uploadSection.querySelector('.preview-container');
+            const existingPlaceholder = uploadSection.querySelector('.photo-placeholder');
+            const existingMessage = uploadSection.querySelector('.text-muted, .text-success');
+            
+            if (existingPreview) existingPreview.remove();
+            if (existingPlaceholder) existingPlaceholder.remove();
+            if (existingMessage) existingMessage.remove();
+            
+            // Create new preview
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'preview-container';
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'current-photo';
+            img.alt = 'Preview Foto';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-photo';
+            removeBtn.title = 'Hapus Foto';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.onclick = function() {
+                input.value = '';
+                previewContainer.remove();
+                
+                // Show placeholder again
+                const placeholder = document.createElement('div');
+                placeholder.className = 'photo-placeholder';
+                placeholder.innerHTML = '<i class="fas fa-user"></i>';
+                
+                const message = document.createElement('p');
+                message.className = 'text-muted mb-2';
+                message.textContent = 'Belum ada foto profil';
+                
+                uploadSection.insertBefore(placeholder, document.getElementById('uploadTrigger'));
+                uploadSection.insertBefore(message, document.getElementById('uploadTrigger'));
+                
+                // Update button text
+                document.getElementById('uploadTrigger').innerHTML = '<i class="fas fa-upload me-1"></i>Upload Foto';
+            };
+            
+            previewContainer.appendChild(img);
+            previewContainer.appendChild(removeBtn);
+            
+            const message = document.createElement('p');
+            message.className = 'text-success mb-2';
+            message.innerHTML = '<i class="fas fa-check-circle me-1"></i>Preview foto baru';
+            
+            uploadSection.insertBefore(previewContainer, document.getElementById('uploadTrigger'));
+            uploadSection.insertBefore(message, document.getElementById('uploadTrigger'));
+            
+            // Update button text
+            document.getElementById('uploadTrigger').innerHTML = '<i class="fas fa-sync me-1"></i>Ganti Foto';
+            
+            // Reset remove photo flag
+            document.getElementById('remove_photo').value = 'false';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+{% endblock %}

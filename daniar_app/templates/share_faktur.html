@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Kirim Faktur - PT. Daniar Furniture Art{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="bi bi-send"></i> Kirim Faktur {{ faktur.nomor_faktur }}
+        </h1>
+        <a href="{{ url_for('main.detail_faktur', id=faktur.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Kembali ke Detail
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-envelope"></i> Kirim via Email
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.kirim_email_faktur', id=faktur.id) }}">
+                        <div class="form-group">
+                            <label for="email_tujuan" class="form-label">Alamat Email Tujuan</label>
+                            <input type="email" class="form-control" id="email_tujuan" name="email_tujuan" 
+                                   required placeholder="contoh@email.com" value="{{ faktur.email or '' }}">
+                            <small class="form-text text-muted">Faktur akan dikirim ke email ini</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-envelope"></i> Kirim Email
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-success text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-whatsapp"></i> Kirim via WhatsApp
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.kirim_whatsapp_faktur', id=faktur.id) }}">
+                        <div class="form-group">
+                            <label for="nomor_whatsapp" class="form-label">Nomor WhatsApp Tujuan</label>
+                            <input type="tel" class="form-control" id="nomor_whatsapp" name="nomor_whatsapp" 
+                                   required placeholder="6281234567890" value="{{ faktur.telepon or '' }}">
+                            <small class="form-text text-muted">Format: 6281234567890 (tanpa + atau spasi)</small>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-whatsapp"></i> Kirim WhatsApp
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-warning text-dark">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-printer"></i> Print Faktur
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <p class="mb-4">Cetak faktur dalam format yang rapi untuk arsip atau diberikan langsung ke pelanggan.</p>
+                    <a href="{{ url_for('main.print_faktur', id=faktur.id) }}" target="_blank" class="btn btn-warning btn-lg">
+                        <i class="bi bi-printer"></i> Buka Halaman Print
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faktur Preview -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Pratinjau Faktur</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nomor Faktur:</strong> {{ faktur.nomor_faktur }}</p>
+                    <p><strong>Pelanggan:</strong> {{ faktur.nama_pelanggan }}</p>
+                    <p><strong>Tanggal:</strong> {{ faktur.tanggal_faktur.strftime('%d/%m/%Y') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Total:</strong> {{ faktur.total_harga|currency }}</p>
+                    <p><strong>Jumlah Item:</strong> {{ faktur.items|length }}</p>
+                    {% if faktur.alamat_pelanggan %}
+                    <p><strong>Alamat:</strong> {{ faktur.alamat_pelanggan }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

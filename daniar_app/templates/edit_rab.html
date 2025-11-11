@@ -1,0 +1,223 @@
+<!-- FILE: templates/edit_rab.html -->
+{% extends "base.html" %}
+{% block title %}Edit RAB - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_js %}
+<script>
+function addItemRow(){
+    const itemList = document.getElementById('item-list');
+    const newRow = document.createElement('div');
+    newRow.className = 'row g-3 item-row mb-3';
+    newRow.innerHTML = `
+        <div class="col-md-3">
+            <select name="kategori_item[]" class="form-select" required>
+                <option value="">Pilih Kategori</option>
+                <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Tenaga Kerja">Tenaga Kerja</option>
+                <option value="Biaya Overhead">Biaya Overhead</option>
+                <option value="Transportasi">Transportasi</option>
+                <option value="Lain-lain">Lain-lain</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="nama_item[]" class="form-control" placeholder="Nama Item" required>
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="spesifikasi[]" class="form-control" placeholder="Spesifikasi">
+        </div>
+        <div class="col-md-1">
+            <input type="number" name="quantity[]" class="form-control" placeholder="Qty" step="0.01" value="1" required>
+        </div>
+        <div class="col-md-1">
+            <input type="text" name="satuan[]" class="form-control" placeholder="Satuan" value="unit">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="harga_satuan[]" class="form-control" placeholder="Harga Satuan" step="0.01" required>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItemRow(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    itemList.appendChild(newRow);
+}
+
+function removeItemRow(button){
+    const row = button.closest('.item-row');
+    row.remove();
+}
+
+// Auto-calculate total when harga_satuan or quantity changes
+function setupAutoCalculate() {
+    document.addEventListener('input', function(e) {
+        if (e.target.name === 'harga_satuan[]' || e.target.name === 'quantity[]') {
+            const row = e.target.closest('.item-row');
+            const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+            const hargaSatuan = parseFloat(row.querySelector('input[name="harga_satuan[]"]').value) || 0;
+            const total = quantity * hargaSatuan;
+            
+            // You can display the total in a separate field if needed
+            console.log(`Total: ${total}`); // For debugging
+        }
+    });
+}
+
+// Pre-fill existing items when editing
+function fillExistingItems() {
+    {% for item in items %}
+    addItemRow();
+    const rows = document.querySelectorAll('.item-row');
+    const lastRow = rows[rows.length - 1];
+    
+    lastRow.querySelector('select[name="kategori_item[]"]').value = "{{ item.kategori_item }}";
+    lastRow.querySelector('input[name="nama_item[]"]').value = "{{ item.nama_item }}";
+    lastRow.querySelector('input[name="spesifikasi[]"]').value = "{{ item.spesifikasi or '' }}";
+    lastRow.querySelector('input[name="quantity[]"]').value = "{{ item.quantity }}";
+    lastRow.querySelector('input[name="satuan[]"]').value = "{{ item.satuan }}";
+    lastRow.querySelector('input[name="harga_satuan[]"]').value = "{{ item.harga_satuan }}";
+    {% endfor %}
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    // Jika tidak ada items, tambah row pertama
+    {% if not items %}
+    addItemRow();
+    {% else %}
+    fillExistingItems();
+    {% endif %}
+    
+    setupAutoCalculate(); // Setup auto calculation
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="text-center mb-4">✏️ Edit RAB</h2>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.edit_rab', id=rab.id) }}">
+                <!-- Informasi Proyek -->
+                <h5 class="mb-3">📋 Informasi Proyek</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="nama_proyek" class="form-label">Nama Proyek *</label>
+                        <input type="text" class="form-control" id="nama_proyek" name="nama_proyek" 
+                               value="{{ rab.nama_proyek }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nama_klien" class="form-label">Nama Klien *</label>
+                        <input type="text" class="form-control" id="nama_klien" name="nama_klien" 
+                               value="{{ rab.nama_klien }}" required>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="lokasi_proyek" class="form-label">Lokasi Proyek</label>
+                        <input type="text" class="form-control" id="lokasi_proyek" name="lokasi_proyek" 
+                               value="{{ rab.lokasi_proyek or '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tanggal" class="form-label">Tanggal *</label>
+                        <input type="date" class="form-control" id="tanggal" name="tanggal" 
+                               value="{{ rab.tanggal.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="DRAFT" {% if rab.status == 'DRAFT' %}selected{% endif %}>DRAFT</option>
+                            <option value="REVIEW" {% if rab.status == 'REVIEW' %}selected{% endif %}>REVIEW</option>
+                            <option value="APPROVED" {% if rab.status == 'APPROVED' %}selected{% endif %}>APPROVED</option>
+                            <option value="REJECTED" {% if rab.status == 'REJECTED' %}selected{% endif %}>REJECTED</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label for="deskripsi" class="form-label">Deskripsi Proyek</label>
+                        <textarea class="form-control" id="deskripsi" name="deskripsi" 
+                                  rows="3" placeholder="Deskripsi lengkap proyek...">{{ rab.deskripsi or '' }}</textarea>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Detail Anggaran -->
+                <h5 class="mb-3">💰 Detail Anggaran</h5>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-3"><small class="fw-bold">Kategori</small></div>
+                    <div class="col-md-3"><small class="fw-bold">Nama Item</small></div>
+                    <div class="col-md-2"><small class="fw-bold">Spesifikasi</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Qty</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Satuan</small></div>
+                    <div class="col-md-2"><small class="fw-bold">Harga Satuan (Rp)</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Aksi</small></div>
+                </div>
+                
+                <div id="item-list">
+                    <!-- Items akan ditambahkan di sini oleh JavaScript -->
+                </div>
+                
+                <div class="text-end mt-3">
+                    <button type="button" class="btn btn-secondary" onclick="addItemRow()">
+                        <i class="bi bi-plus"></i> Tambah Item
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <!-- Summary -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">📊 Summary</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>Kode RAB:</span>
+                                <strong>{{ rab.kode_rab }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Total Anggaran:</span>
+                                <strong class="text-success">{{ rab.total_anggaran|currency }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Dibuat:</span>
+                                <strong>{{ rab.created_at.strftime('%d %b %Y') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">💡 Tips</h6>
+                            <small>
+                                • Pastikan semua item terisi dengan benar<br>
+                                • Periksa kembali total anggaran<br>
+                                • Update status sesuai kebutuhan
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{{ url_for('main.rab') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </a>
+                        <a href="{{ url_for('main.detail_rab', id=rab.id) }}" class="btn btn-outline-info">
+                            <i class="bi bi-eye"></i> Lihat Detail
+                        </a>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Update RAB
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

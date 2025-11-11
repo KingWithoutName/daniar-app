@@ -1,0 +1,762 @@
+<!-- templates/laporan_karyawan.html -->
+{% extends "base.html" %}
+
+{% block title %}Laporan Karyawan - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+        --warning-yellow: #f39c12;
+        --info-blue: #2980b9;
+    }
+
+    /* --- Animasi --- */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Kartu Statistik --- */
+    .stat-card {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        border-left: 6px solid;
+        height: 120px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(247, 127, 0, 0.1), transparent);
+        border-radius: 50%;
+        transform: translate(20px, -20px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card .stat-icon {
+        font-size: 2.5rem;
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card .stat-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .stat-card .stat-info h5 {
+        color: #666;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .stat-info h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dark-bg);
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Warna Kartu Statistik */
+    .stat-card.total { border-left-color: var(--primary-orange); }
+    .stat-card.total .stat-icon { background: var(--primary-orange); }
+    
+    .stat-card.tetap { border-left-color: var(--success-green); }
+    .stat-card.tetap .stat-icon { background: var(--success-green); }
+    
+    .stat-card.kontrak { border-left-color: var(--warning-yellow); }
+    .stat-card.kontrak .stat-icon { background: var(--warning-yellow); }
+    
+    .stat-card.gaji { border-left-color: var(--info-blue); }
+    .stat-card.gaji .stat-icon { background: var(--info-blue); }
+
+    /* --- Kartu Ringkasan --- */
+    .summary-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .summary-card.tertinggi { border-left-color: var(--danger-red); }
+    .summary-card.terendah { border-left-color: var(--warning-yellow); }
+    .summary-card.terlama { border-left-color: var(--info-blue); }
+
+    .summary-card h6 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        color: #666;
+    }
+
+    .summary-card h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* --- Tabel --- */
+    .data-table {
+        font-size: 0.85rem;
+    }
+
+    .data-table thead th {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .data-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: var(--light-orange);
+        transform: translateY(-1px);
+    }
+
+    .data-table tfoot {
+        background-color: var(--light-bg);
+        font-weight: 700;
+    }
+
+    /* Badge warna */
+    .badge-tetap { background-color: var(--success-green); color: white; }
+    .badge-kontrak { background-color: var(--warning-yellow); color: white; }
+    .badge-percobaan { background-color: var(--info-blue); color: white; }
+    .badge-honorer { background-color: #95a5a6; color: white; }
+
+    /* --- Gaya Card --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+        color: white;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        padding: 1rem 1.5rem;
+        border: none;
+    }
+
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+
+    /* --- Tombol Aksi --- */
+    .btn-action {
+        border-radius: 10px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-excel {
+        background: linear-gradient(135deg, #21a366, #138a4e);
+        color: white;
+    }
+
+    .btn-excel:hover {
+        background: linear-gradient(135deg, #138a4e, #0d6e3d);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(33, 163, 102, 0.4);
+        color: white;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #e74a3b, #c0392b);
+        color: white;
+    }
+
+    .btn-print:hover {
+        background: linear-gradient(135deg, #c0392b, #a93226);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 74, 59, 0.4);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+    }
+
+    .btn-back:hover {
+        background: linear-gradient(135deg, #495057, #343a40);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        color: white;
+    }
+
+    /* --- Layout --- */
+    .dashboard-row {
+        margin-bottom: 2rem;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+        .stat-card {
+            height: 100px;
+            padding: 1rem;
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            margin-right: 0.75rem;
+        }
+        
+        .stat-card .stat-info h3 {
+            font-size: 1.1rem;
+        }
+        
+        .summary-card {
+            padding: 0.75rem;
+        }
+        
+        .summary-card h4 {
+            font-size: 1rem;
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+    }
+
+    /* --- Gaya untuk Cetak --- */
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .stat-card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            background: white !important;
+        }
+        
+        .data-table thead th {
+            background: #f8f9fa !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 animate-fade-in">
+        <div>
+            <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">
+                <i class="bi bi-people-fill me-2"></i>Laporan Karyawan
+            </h1>
+            <p class="text-muted mb-0">Analisis data karyawan dan pengeluaran gaji</p>
+        </div>
+        <div class="d-flex gap-2 no-print">
+            <button class="btn btn-action btn-excel" onclick="exportToExcel()">
+                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+            </button>
+            <button class="btn btn-action btn-print" onclick="printReport()">
+                <i class="bi bi-printer me-2"></i>Print
+            </button>
+            <a href="{{ url_for('main.karyawan') }}" class="btn btn-action btn-back">
+                <i class="bi bi-arrow-left me-2"></i>Kembali
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistik Cards -->
+    <div class="row dashboard-row">
+        <!-- Total Karyawan -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-card total">
+                <div class="stat-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Total Karyawan</h5>
+                    <h3>{{ total_karyawan }} Orang</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karyawan Tetap -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-card tetap">
+                <div class="stat-icon">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Karyawan Tetap</h5>
+                    <h3>{{ karyawan_tetap }} Orang</h3>
+                    <small class="text-muted">
+                        {{ (karyawan_tetap / total_karyawan * 100) | round(1) if total_karyawan > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karyawan Kontrak -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-card kontrak">
+                <div class="stat-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Karyawan Kontrak</h5>
+                    <h3>{{ karyawan_kontrak }} Orang</h3>
+                    <small class="text-muted">
+                        {{ (karyawan_kontrak / total_karyawan * 100) | round(1) if total_karyawan > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Pengeluaran Gaji -->
+        <div class="col-xl-3 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.4s;">
+            <div class="stat-card gaji">
+                <div class="stat-icon">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-info">
+                    <h5>Total Gaji/Bulan</h5>
+                    <h3>{{ total_gaji | format_rupiah }}</h3>
+                    <small class="text-muted">
+                        Rata-rata: {{ (total_gaji / total_karyawan) | format_rupiah if total_karyawan > 0 else 0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row dashboard-row">
+        <!-- Chart Distribusi Jabatan -->
+        <div class="col-xl-6 col-lg-6 animate-fade-in" style="animation-delay: 0.5s;">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-briefcase me-2"></i>Distribusi Jabatan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="jabatanChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for jabatan in jabatan_stats %}
+                            <span class="me-3 mb-2 d-inline-block">
+                                <i class="bi bi-circle-fill me-1" style="color: {{ loop.index0 | chart_color }}"></i>
+                                {{ jabatan[0] or 'Tidak Diketahui' }} ({{ jabatan[1] }})
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Distribusi Status -->
+        <div class="col-xl-6 col-lg-6 animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-pie-chart me-2"></i>Distribusi Status Karyawan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for status in status_stats %}
+                            <span class="me-3 mb-2 d-inline-block">
+                                <i class="bi bi-circle-fill me-1" style="color: {{ status[0] | status_color }}"></i>
+                                {{ status[0] or 'Tidak Diketahui' }} ({{ status[1] }})
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Laporan -->
+    <div class="row dashboard-row">
+        <div class="col-12 animate-fade-in" style="animation-delay: 0.7s;">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-table me-2"></i>Detail Data Karyawan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table data-table table-hover" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>NIK</th>
+                                    <th>Nama</th>
+                                    <th>Jabatan</th>
+                                    <th>Divisi</th>
+                                    <th>Status</th>
+                                    <th>Gaji Pokok</th>
+                                    <th>Tanggal Masuk</th>
+                                    <th>Lama Kerja</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for karyawan in all_karyawan %}
+                                <tr>
+                                    <td class="fw-bold">{{ karyawan.nik or '-' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('main.detail_karyawan', id=karyawan.id) }}" 
+                                           class="text-primary text-decoration-none fw-bold">
+                                            {{ karyawan.nama }}
+                                        </a>
+                                    </td>
+                                    <td>{{ karyawan.jabatan }}</td>
+                                    <td>{{ karyawan.divisi or '-' }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ karyawan.status | lower }}">
+                                            {{ karyawan.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end fw-bold text-success">
+                                        {{ karyawan.gaji_pokok | format_rupiah }}
+                                    </td>
+                                    <td>
+                                        {% if karyawan.tanggal_masuk %}
+                                            {{ karyawan.tanggal_masuk.strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">
+                                        {% if karyawan.tanggal_masuk %}
+                                            {% set today = current_date %}
+                                            {% set lama_kerja = today - karyawan.tanggal_masuk %}
+                                            {% set tahun = lama_kerja.days // 365 %}
+                                            {% set bulan = (lama_kerja.days % 365) // 30 %}
+                                            <span class="text-primary">{{ tahun }} thn {{ bulan }} bln</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="5" class="text-end">TOTAL:</th>
+                                    <th class="text-end text-success">
+                                        {{ total_gaji | format_rupiah }}
+                                    </th>
+                                    <th colspan="2"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row dashboard-row">
+        <!-- Gaji Tertinggi -->
+        <div class="col-xl-4 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.8s;">
+            <div class="summary-card tertinggi">
+                <h6>Gaji Tertinggi</h6>
+                {% if max_gaji_karyawan %}
+                    <h4 class="text-danger">{{ max_gaji_karyawan.gaji_pokok | format_rupiah }}</h4>
+                    <p class="mb-1 fw-bold">{{ max_gaji_karyawan.nama }}</p>
+                    <small class="text-muted">{{ max_gaji_karyawan.jabatan }}</small>
+                {% else %}
+                    <p class="text-muted">-</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Gaji Terendah -->
+        <div class="col-xl-4 col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.9s;">
+            <div class="summary-card terendah">
+                <h6>Gaji Terendah</h6>
+                {% if min_gaji_karyawan %}
+                    <h4 class="text-warning">{{ min_gaji_karyawan.gaji_pokok | format_rupiah }}</h4>
+                    <p class="mb-1 fw-bold">{{ min_gaji_karyawan.nama }}</p>
+                    <small class="text-muted">{{ min_gaji_karyawan.jabatan }}</small>
+                {% else %}
+                    <p class="text-muted">-</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Karyawan Terlama -->
+        <div class="col-xl-4 col-md-6 mb-4 animate-fade-in" style="animation-delay: 1.0s;">
+            <div class="summary-card terlama">
+                <h6>Karyawan Terlama</h6>
+                {% if oldest_karyawan %}
+                    <h4 class="text-info">{{ oldest_kerja }}</h4>
+                    <p class="mb-1 fw-bold">{{ oldest_karyawan.nama }}</p>
+                    <small class="text-muted">{{ oldest_karyawan.jabatan }}</small>
+                {% else %}
+                    <p class="text-muted">-</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart colors dengan tema orange
+const chartColors = [
+    '#f77f00', '#f39c12', '#e74a3b', '#00b894', '#2980b9',
+    '#9b59b6', '#34495e', '#e67e22', '#1abc9c', '#d35400'
+];
+
+// Jabatan Chart
+const jabatanCtx = document.getElementById('jabatanChart').getContext('2d');
+const jabatanChart = new Chart(jabatanCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for jabatan in jabatan_stats %}
+                '{{ jabatan[0] or "Tidak Diketahui" }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for jabatan in jabatan_stats %}
+                    {{ jabatan[1] }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: chartColors,
+            hoverBackgroundColor: chartColors.map(color => color + 'DD'),
+            borderColor: '#fff',
+            borderWidth: 2,
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    },
+});
+
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'pie',
+    data: {
+        labels: [
+            {% for status in status_stats %}
+                '{{ status[0] or "Tidak Diketahui" }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for status in status_stats %}
+                    {{ status[1] }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#00b894', // TETAP - hijau
+                '#f39c12', // KONTRAK - orange
+                '#2980b9', // PERCOBAAN - biru
+                '#e74a3b', // HONORER - merah
+                '#95a5a6'  // Lainnya - abu
+            ],
+            hoverBackgroundColor: [
+                '#00a085', '#e67e22', '#2471a3', '#cb4335', '#7b8a8b'
+            ],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    },
+});
+
+// Export to Excel
+function exportToExcel() {
+    try {
+        const table = document.getElementById('dataTable');
+        const html = table.outerHTML;
+        const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+        const link = document.createElement('a');
+        const fileName = `Laporan_Karyawan_${new Date().toISOString().split('T')[0]}.xls`;
+        link.download = fileName;
+        link.href = url;
+        link.click();
+        
+        showAlert('File Excel berhasil diunduh!', 'success');
+    } catch (error) {
+        showAlert('Error saat mengunduh file Excel', 'danger');
+        console.error('Export error:', error);
+    }
+}
+
+// Print Report
+function printReport() {
+    window.print();
+}
+
+// Show alert
+function showAlert(message, type) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.custom-alert');
+    existingAlerts.forEach(alert => alert.remove());
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);';
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// Initialize DataTable dengan konfigurasi yang lebih baik
+document.addEventListener('DOMContentLoaded', function() {
+    if ($.fn.DataTable) {
+        $('#dataTable').DataTable({
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [[1, 'asc']],
+            language: {
+                search: "<i class='bi bi-search me-2'></i>Cari:",
+                lengthMenu: "Tampilkan _MENU_ data",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                infoFiltered: "(disaring dari _MAX_ total data)",
+                paginate: {
+                    first: "<i class='bi bi-chevron-double-left'></i>",
+                    last: "<i class='bi bi-chevron-double-right'></i>",
+                    next: "<i class='bi bi-chevron-right'></i>",
+                    previous: "<i class='bi bi-chevron-left'></i>"
+                }
+            },
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            initComplete: function() {
+                // Add custom styling to DataTable elements
+                $('.dataTables_length select').addClass('form-select form-select-sm');
+                $('.dataTables_filter input').addClass('form-control form-control-sm');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

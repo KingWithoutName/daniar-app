@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Aset Tetap - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan (Sama seperti Dashboard) --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi Fade In --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Gaya Card Umum --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+    
+    /* --- Gaya Tabel --- */
+    .table thead th {
+        border-top: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #868e96;
+        background-color: var(--light-bg);
+    }
+    .table tbody tr:hover {
+        background-color: var(--light-orange);
+    }
+    .table .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+    }
+    .collapse .card-body {
+        background-color: #f8f9fc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Aset Tetap</h1>
+        <p class="text-muted mb-0">{{ moment().format('dddd, D MMMM YYYY') }}</p>
+    </div>
+
+    <!-- Form Tambah Aset Tetap -->
+    <div class="card shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-plus-circle-fill me-2"></i>Tambah Aset Tetap Baru
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.tambah_aset_tetap') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="nama_aset" class="form-label">Nama Aset</label>
+                    <input type="text" class="form-control" id="nama_aset" name="nama_aset" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="manufaktur" class="form-label">Manufaktur</label>
+                    <input type="text" class="form-control" id="manufaktur" name="manufaktur" placeholder="Contoh: Yamaha">
+                </div>
+                <div class="col-md-2">
+                    <label for="tanggal_perolehan" class="form-label">Tgl. Perolehan</label>
+                    <input type="date" class="form-control" id="tanggal_perolehan" name="tanggal_perolehan" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="harga_perolehan" class="form-label">Harga Perolehan</label>
+                    <input type="number" class="form-control" id="harga_perolehan" name="harga_perolehan" step="0.01" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="umur_ekonomis" class="form-label">Umur Ekonomis (Tahun)</label>
+                    <input type="number" class="form-control" id="umur_ekonomis" name="umur_ekonomis" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="nilai_sisa" class="form-label">Nilai Sisa</label>
+                    <input type="number" class="form-control" id="nilai_sisa" name="nilai_sisa" step="0.01" value="0">
+                </div>
+                <div class="col-12 text-end mt-2">
+                    <button type="submit" class="btn" style="background-color: var(--primary-orange); color: white; font-weight: 600;">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah Aset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabel Aset Tetap -->
+    <div class="card shadow-sm animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Aset Tetap</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nama Aset</th>
+                            <th>Manufaktur</th>
+                            <th>Tgl. Perolehan</th>
+                            <th>Harga Perolehan</th>
+                            <th>Umur Ekonomis</th>
+                            <th>Nilai Buku Sekarang</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data_aset %}
+                        <tr>
+                            <td><strong>{{ item.aset.nama_aset }}</strong></td>
+                            <td>{{ item.aset.manufaktur or '-' }}</td>
+                            <td>{{ item.aset.tanggal_perolehan.strftime('%d %b %Y') }}</td>
+                            <td>{{ item.aset.harga_perolehan|currency }}</td>
+                            <td>{{ item.aset.umur_ekonomis }} Tahun</td>
+                            <td><strong style="color: var(--primary-orange);">{{ item.nilai_buku|currency }}</strong></td>
+                            <td class="text-center">
+                                <button class="btn btn-info btn-action" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-{{ item.aset.id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <a href="{{ url_for('main.edit_aset_tetap', id=item.aset.id) }}" class="btn btn-warning btn-action">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{{ url_for('main.hapus_aset_tetap', id=item.aset.id) }}" class="btn btn-danger btn-action" onclick="return confirm('Apakah Anda yakin?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <!-- Detail Penyusutan -->
+                        <tr>
+                            <td colspan="7" class="p-0">
+                                <div class="collapse" id="flush-collapse-{{ item.aset.id }}">
+                                    <div class="card card-body">
+                                        <h6 class="card-title">Jadwal Penyusutan: {{ item.aset.nama_aset }}</h6>
+                                        <p class="text-muted small">
+                                            Metode: Garis Lurus | Penyusutan per Tahun: {{ item.penyusutan_tahunan|currency }}
+                                        </p>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Tahun ke-</th>
+                                                        <th>Penyusutan Tahunan</th>
+                                                        <th>Akumulasi Penyusutan</th>
+                                                        <th>Nilai Buku Akhir Tahun</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for schedule in item.penyusutan_schedule %}
+                                                    <tr>
+                                                        <td>{{ schedule.tahun }}</td>
+                                                        <td>{{ schedule.penyusutan|currency }}</td>
+                                                        <td>{{ schedule.akumulasi|currency }}</td>
+                                                        <td><strong>{{ schedule.nilai_buku|currency }}</strong></td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Belum ada data aset tetap.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

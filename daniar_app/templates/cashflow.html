@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+{% block title %}Cashflow - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Tema Warna Oranye Dominan (Sama seperti Dashboard) --- */
+    :root {
+        --primary-orange: #f77f00;
+        --dark-orange: #d35400;
+        --light-orange: #fdebd0;
+        --dark-bg: #2c3e50;
+        --light-bg: #f8f9fc;
+        --white: #ffffff;
+        --success-green: #00b894;
+        --danger-red: #d63031;
+        --warning-orange: #f39c12;
+        --info-blue: #3498db;
+        --purple: #9b59b6;
+        --modal-blue: #2980b9;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        color: var(--dark-bg);
+    }
+
+    /* --- Animasi Fade In --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* --- Gaya Card Umum --- */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: var(--dark-bg);
+    }
+    .text-primary {
+        color: var(--primary-orange) !important;
+    }
+    
+    /* --- Gaya Tabel --- */
+    .table thead th {
+        border-top: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #868e96;
+        background-color: var(--light-bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .table tbody tr:hover {
+        background-color: var(--light-orange);
+    }
+    .table .badge {
+        font-size: 0.7rem;
+        padding: 0.35em 0.65em;
+    }
+    .table .btn-action {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+    }
+
+    /* Badge warna berdasarkan kategori */
+    .badge-pemasukan { background-color: var(--success-green); color: white; }
+    .badge-hpp { background-color: var(--danger-red); color: white; }
+    .badge-operasional { background-color: var(--danger-red); color: white; }
+    .badge-lain { background-color: var(--danger-red); color: white; }
+    .badge-kasbon { background-color: var(--purple); color: white; }
+    .badge-modal { background-color: var(--modal-blue); color: white; }
+
+    /* Status Kasbon */
+    .kasbon-info {
+        background-color: #e8f4fd;
+        border-left: 4px solid var(--info-blue);
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    /* Warna teks untuk nilai uang */
+    .text-pemasukan { color: var(--success-green); font-weight: 600; }
+    .text-pengeluaran { color: var(--danger-red); font-weight: 600; }
+    .text-modal { color: var(--modal-blue); font-weight: 600; }
+    
+    /* Container untuk tabel dengan scroll */
+    .table-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 8px;
+    }
+    
+    /* Responsif untuk mobile */
+    @media (max-width: 768px) {
+        .table-container {
+            max-height: 400px;
+        }
+    }
+
+    /* Tooltip untuk penjelasan kategori */
+    .kategori-tooltip {
+        border-bottom: 1px dashed #6c757d;
+        cursor: help;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">Cashflow</h1>
+        <div>
+            <p class="text-muted mb-0">{{ moment().format('dddd, D MMMM YYYY') }}</p>
+            {% if kasbon_state %}
+            <div class="kasbon-info">
+                <small class="text-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Total Kasbon: <strong>{{ kasbon_state.total_utang|currency }}</strong>
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form Tambah Data -->
+    <div class="card shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-plus-circle-fill me-2"></i>Tambah Data Cashflow
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.cashflow') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="tanggal" class="form-label">Tanggal</label>
+                    <input type="date" name="tanggal" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="nama_barang" class="form-label">Nama Barang / Jasa</label>
+                    <input type="text" class="form-control" name="nama_barang" placeholder="contoh: Pembelian Kayu" required>
+                </div>
+                <div class="col-md-5">
+                    <label for="jenis" class="form-label">Jenis <small class="text-muted">(Pilih kategori)</small></label>
+                    <select name="jenis" class="form-select" required>
+                        <option value="" disabled selected>-- Pilih Jenis --</option>
+                        
+                        <!-- MODAL AWAL (Biru) -->
+                        <optgroup label="MODAL AWAL" style="color: var(--modal-blue);">
+                            <option value="SETORAN MODAL AWAL">SETORAN MODAL AWAL</option>
+                            <option value="TAMBAHAN MODAL">TAMBAHAN MODAL</option>
+                            <option value="INVESTASI PEMILIK">INVESTASI PEMILIK</option>
+                        </optgroup>
+
+                        <!-- PEMASUKAN (Hijau) -->
+                        <optgroup label="PEMASUKAN">
+                            <option value="PENJUALAN TUNAI">PENJUALAN TUNAI</option>
+                            <option value="PENERIMAAN PIUTANG">PENERIMAAN PIUTANG</option>
+                            <option value="PENDAPATAN BUNGA">PENDAPATAN BUNGA</option>
+                            <option value="PENGEMBALIAN PAJAK">PENGEMBALIAN PAJAK</option>
+                            <option value="PENERIMAAN TUNAI LAINNYA">PENERIMAAN TUNAI LAINNYA</option>
+                            <option value="BAYAR KASBON">BAYAR KASBON</option>
+                        </optgroup>
+
+                        <!-- PINJAMAN/FUNDING (Oranye) -->
+                        <optgroup label="PINJAMAN / FUNDING" style="color: var(--warning-orange);">
+                            <option value="PINJAMAN BANK">PINJAMAN BANK</option>
+                            <option value="CASH INJECTION">CASH INJECTION</option>
+                            <option value="DANA PINJAMAN">DANA PINJAMAN</option>
+                            <option value="FUNDING INVESTOR">FUNDING INVESTOR</option>
+                        </optgroup>
+
+                        <!-- HPP (Merah) -->
+                        <optgroup label="( – ) HPP">
+                            <option value="BIAYA PRODUK / LAYANAN LANGSUNG">BIAYA PRODUK / LAYANAN LANGSUNG</option>
+                            <option value="PAJAK PENGGAJIAN - LANGSUNG">PAJAK PENGGAJIAN - LANGSUNG</option>
+                            <option value="GAJI - TKL">GAJI - TKL</option>
+                            <option value="PERSEDIAAN">PERSEDIAAN</option>
+                            <option value="LAINNYA">LAINNYA</option>
+                        </optgroup>
+
+                        <!-- BIAYA OPERASIONAL (Merah) -->
+                        <optgroup label="( – ) BIAYA OPERASIONAL">
+                            <option value="GAJI KARYAWAN">GAJI KARYAWAN</option>
+                            <option value="IKLAN">IKLAN</option>
+                            <option value="BIAYA BANK">BIAYA BANK</option>
+                            <option value="PELATIHAN">PELATIHAN</option>
+                            <option value="ASURANSI">ASURANSI</option>
+                            <option value="INTERNET">INTERNET</option>
+                            <option value="LISENSI / IZIN">LISENSI / IZIN</option>
+                            <option value="MAKANAN / HIBURAN">MAKANAN / HIBURAN</option>
+                            <option value="PERALATAN KANTOR">PERALATAN KANTOR</option>
+                            <option value="PAJAK GAJI">PAJAK GAJI</option>
+                            <option value="ONGKOS KIRIM">ONGKOS KIRIM</option>
+                            <option value="PENCETAKAN">PENCETAKAN</option>
+                            <option value="KONSULTAN">KONSULTAN</option>
+                            <option value="OKUPANSI">OKUPANSI</option>
+                            <option value="BIAYA SEWA">BIAYA SEWA</option>
+                            <option value="SUBCONTRACTOR">SUBCONTRACTOR</option>
+                            <option value="TELEPON">TELEPON</option>
+                            <option value="TRANSPORTASI">TRANSPORTASI</option>
+                            <option value="PERJALANAN DINAS">PERJALANAN DINAS</option>
+                            <option value="BIAYA LISTRIK">BIAYA LISTRIK</option>
+                            <option value="PENGEMBANGAN WEB">PENGEMBANGAN WEB</option>
+                            <option value="DOMAIN WEB DAN HOSTING">DOMAIN WEB DAN HOSTING</option>
+                            <option value="BIAYA AIR">BIAYA AIR</option>
+                            <option value="BIAYA SUBSCRIPTION">BIAYA SUBSCRIPTION</option>
+                            <option value="PAJAK PEMBELIAN">PAJAK PEMBELIAN</option>
+                            <option value="LAINNYA">LAINNYA</option>
+                        </optgroup>
+
+                        <!-- PENGELUARAN LAIN-LAIN (Merah) -->
+                        <optgroup label="( – ) PENGELUARAN LAIN-LAIN">
+                            <option value="PENGELUARAN TUNAI UNTUK PEMILIK">PENGELUARAN TUNAI UNTUK PEMILIK</option>
+                            <option value="KASBON">KASBON</option>
+                            <option value="BEBAN BUNGA">BEBAN BUNGA</option>
+                            <option value="BEBAN PAJAK PENGHASILAN">BEBAN PAJAK PENGHASILAN</option>
+                            <option value="BIAYA ADMIN">BIAYA ADMIN</option>
+                            <option value="LAINNYA">LAINNYA</option>
+                        </optgroup>
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span class="kategori-tooltip" title="Modal: Investasi pemilik | Funding: Pinjaman yang harus dikembalikan">Perbedaan Modal vs Funding</span>
+                    </small>
+                </div>
+                <div class="col-md-3">
+                    <label for="jumlah" class="form-label">Jumlah</label>
+                    <input type="text" name="jumlah" class="form-control" placeholder="contoh: 1 Unit">
+                </div>
+                <div class="col-md-3">
+                    <label for="satuan" class="form-label">Satuan</label>
+                    <input type="text" name="satuan" class="form-control" placeholder="contoh: Unit, Pcs">
+                </div>
+                <div class="col-md-3">
+                    <label for="harga" class="form-label">Nilai Total</label>
+                    <input type="number" name="harga" class="form-control" step="0.01" placeholder="Masukkan total nilai" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="keterangan" class="form-label">Keterangan</label>
+                    <input type="text" name="keterangan" class="form-control" placeholder="contoh: PO-123">
+                </div>
+                <div class="col-md-6">
+                    <label for="catatan_tambahan" class="form-label">Catatan Tambahan</label>
+                    <input type="text" name="catatan_tambahan" class="form-control" placeholder="Catatan tambahan (opsional)">
+                </div>
+                <div class="col-12 text-end mt-2">
+                    <button type="submit" class="btn" style="background-color: var(--primary-orange); color: white; font-weight: 600;">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter Data -->
+    <div class="card shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('main.cashflow') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="filter_month" class="form-label">Pilih Bulan</label>
+                    <select name="month" id="filter_month" class="form-select">
+                        <option value="">Semua Bulan</option>
+                        {% for month_val, month_name in months %}
+                        <option value="{{ month_val }}" {% if selected_month == month_val|string %}selected{% endif %}>{{ month_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="filter_year" class="form-label">Pilih Tahun</label>
+                    <select name="year" id="filter_year" class="form-select">
+                        <option value="">Semua Tahun</option>
+                        {% for year in years %}
+                        <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabel Data Cashflow -->
+    <div class="card shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Data Cashflow</h6>
+            <div>
+                <a href="{{ url_for('main.export_cashflow_excel') }}" class="btn btn-success btn-sm me-2">
+                    <i class="bi bi-file-earmark-excel"></i> Export
+                </a>
+                <a href="{{ url_for('main.print_cashflow') }}" target="_blank" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-printer"></i> Print
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tanggal</th>
+                            <th>Nama Barang / Jasa</th>
+                            <th>Kategori</th>
+                            <th>Jumlah</th>
+                            <th>Satuan</th>
+                            <th>Nilai Total</th>
+                            <th>Keterangan</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ row.tanggal.strftime('%d %b %Y') }}</td>
+                            <td>{{ row.nama_barang }}</td>
+                            <td>
+                                {% set kategori = row.jenis | kategori_besar %}
+                                {% if 'MODAL' in row.jenis %}
+                                    <span class="badge badge-modal">{{ row.jenis }}</span>
+                                {% elif kategori == 'PEMASUKAN' %}
+                                    <span class="badge badge-pemasukan">{{ row.jenis }}</span>
+                                {% elif kategori == 'HPP' %}
+                                    <span class="badge badge-hpp">{{ row.jenis }}</span>
+                                {% elif kategori == 'OPERASIONAL' %}
+                                    <span class="badge badge-operasional">{{ row.jenis }}</span>
+                                {% elif row.jenis == 'KASBON' or row.jenis == 'BAYAR KASBON' %}
+                                    <span class="badge badge-kasbon">{{ row.jenis }}</span>
+                                {% else %}
+                                    <span class="badge badge-lain">{{ row.jenis }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.jumlah or '-' }}</td>
+                            <td>{{ row.satuan or '-' }}</td>
+                            <td>
+                                {% set kategori = row.jenis | kategori_besar %}
+                                {% if 'MODAL' in row.jenis %}
+                                    <span class="text-modal">+ {{ row.harga|currency }} <small>(Modal)</small></span>
+                                {% elif kategori == 'PEMASUKAN' %}
+                                    <span class="text-pemasukan">+ {{ row.harga|currency }}</span>
+                                {% else %}
+                                    <span class="text-pengeluaran">- {{ row.harga|currency }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.keterangan or '-' }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('main.edit_cashflow', id=row.id) }}" class="btn btn-warning btn-action">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{{ url_for('main.hapus_cashflow', id=row.id) }}" class="btn btn-danger btn-action" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                Belum ada data cashflow.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ringkasan -->
+    <div class="card shadow-sm animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Ringkasan Keuangan</h6>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <!-- Modal Awal (Biru) -->
+                <div class="col-md-2 p-2" style="background-color: var(--light-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--modal-blue);">Modal</div>
+                    <div class="h5 mb-0 font-weight-bold" style="color: var(--modal-blue);">{{ modal|currency }}</div>
+                </div>
+                <!-- Pemasukan (Hijau) -->
+                <div class="col-md-2 p-2" style="background-color: var(--light-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--success-green);">Pemasukan</div>
+                    <div class="h5 mb-0 font-weight-bold" style="color: var(--success-green);">{{ pemasukan|currency }}</div>
+                </div>
+                <!-- HPP (Merah) -->
+                <div class="col-md-2 p-2" style="background-color: var(--light-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--danger-red);">HPP</div>
+                    <div class="h5 mb-0 font-weight-bold" style="color: var(--danger-red);">{{ hpp|currency }}</div>
+                </div>
+                <!-- Operasional (Merah) -->
+                <div class="col-md-2 p-2" style="background-color: var(--light-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--danger-red);">Operasional</div>
+                    <div class="h5 mb-0 font-weight-bold" style="color: var(--danger-red);">{{ operasional|currency }}</div>
+                </div>
+                <!-- Lain-lain (Merah) -->
+                <div class="col-md-2 p-2" style="background-color: var(--light-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--danger-red);">Lain-lain</div>
+                    <div class="h5 mb-0 font-weight-bold" style="color: var(--danger-red);">{{ lain_lain|currency }}</div>
+                </div>
+                <!-- Saldo Akhir -->
+                <div class="col-md-3 p-3" style="background-color: var(--primary-orange); border-radius: 12px; margin: 5px;">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--white);">Saldo Akhir</div>
+                    <div class="h4 mb-0 font-weight-bold" style="color: var(--white);">{{ saldo|currency }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tooltip untuk penjelasan kategori
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltip = document.querySelector('.kategori-tooltip');
+    if (tooltip) {
+        tooltip.addEventListener('click', function() {
+            alert('🔹 MODAL: Investasi pemilik (tidak perlu dikembalikan)\n🔹 FUNDING: Pinjaman (harus dikembalikan + bunga)\n🔹 PEMASUKAN: Pendapatan dari operasional');
+        });
+    }
+});
+</script>
+{% endblock %}

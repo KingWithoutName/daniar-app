@@ -1,0 +1,113 @@
+<!-- templates/edit_slip_gaji.html -->
+{% extends "base.html" %}
+{% block title %}Edit Slip Gaji - PT. Daniar Furniture Art{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">✏️ Edit Slip Gaji</h1>
+        <a href="{{ url_for('main.slip_gaji') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Karyawan</label>
+                        <input type="text" class="form-control" value="{{ slip.karyawan.nama }}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Periode</label>
+                        <input type="text" class="form-control" value="{{ slip.periode }}" readonly>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Gaji Pokok</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control" name="gaji_pokok" value="{{ slip.gaji_pokok }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Tunjangan</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control" name="tunjangan" value="{{ slip.tunjangan }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Bonus</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control" name="bonus" value="{{ slip.bonus }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Potongan</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control" name="potongan" value="{{ slip.potongan }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Keterangan Tunjangan</label>
+                        <input type="text" class="form-control" name="keterangan_tunjangan" value="{{ slip.keterangan_tunjangan or '' }}">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Keterangan Potongan</label>
+                        <input type="text" class="form-control" name="keterangan_potongan" value="{{ slip.keterangan_potongan or '' }}">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="DRAFT" {% if slip.status == 'DRAFT' %}selected{% endif %}>DRAFT</option>
+                            <option value="PAID" {% if slip.status == 'PAID' %}selected{% endif %}>PAID</option>
+                            <option value="CANCELLED" {% if slip.status == 'CANCELLED' %}selected{% endif %}>CANCELLED</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <strong>Total Gaji: <span id="totalDisplay">{{ slip.total_gaji|format_rupiah }}</span></strong>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Update Slip Gaji</button>
+                        <a href="{{ url_for('main.slip_gaji') }}" class="btn btn-secondary">Batal</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="number"]');
+    
+    function calculateTotal() {
+        const gajiPokok = parseFloat(document.querySelector('input[name="gaji_pokok"]').value) || 0;
+        const tunjangan = parseFloat(document.querySelector('input[name="tunjangan"]').value) || 0;
+        const bonus = parseFloat(document.querySelector('input[name="bonus"]').value) || 0;
+        const potongan = parseFloat(document.querySelector('input[name="potongan"]').value) || 0;
+        
+        const total = gajiPokok + tunjangan + bonus - potongan;
+        document.getElementById('totalDisplay').textContent = 'Rp ' + total.toLocaleString('id-ID');
+    }
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+});
+</script>
+{% endblock %}

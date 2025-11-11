@@ -1,0 +1,29 @@
+FAKTUR PENJUALAN - PT. Daniar Furniture Art
+============================================
+
+Kepada Yth. {{ faktur.nama_pelanggan }},
+
+Berikut kami kirimkan faktur penjualan dengan detail sebagai berikut:
+
+Nomor Faktur: {{ faktur.nomor_faktur }}
+Tanggal: {{ faktur.tanggal_faktur.strftime('%d %B %Y') }}
+Alamat: {{ faktur.alamat_pelanggan or '-' }}
+
+DETAIL BARANG:
+{% for item in faktur.items %}
+{{ loop.index }}. {{ item.nama_barang }}
+   Jumlah: {{ item.jumlah }} x Rp {{ "{:,.0f}".format(item.harga) }} = Rp {{ "{:,.0f".format(item.subtotal) }}
+{% endfor %}
+
+TOTAL: Rp {{ "{:,.0f}".format(faktur.total_harga) }}
+
+{% if faktur.keterangan %}
+Keterangan: {{ faktur.keterangan }}
+{% endif %}
+
+Terima kasih atas kepercayaan dan kerjasamanya.
+
+--
+{{ company_name }}
+{{ company_address }}
+Email: {{ company_email }} | Telp: {{ company_phone }}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>RAB - {{ rab.nama_proyek }} - PT. Daniar Furniture Art</title>
+    <style>
+        /* Reset untuk print */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            margin: 1cm;
+        }
+        
+        /* Sembunyikan element tidak perlu saat print */
+        @media print {
+            .no-print { display: none !important; }
+            .page-break { page-break-after: always; }
+            body { margin: 0.5cm; }
+        }
+        
+        /* Style untuk screen (preview) */
+        @media screen {
+            body { background: #f5f5f5; }
+            .print-container { 
+                background: white; 
+                max-width: 21cm; 
+                margin: 20px auto; 
+                padding: 1cm; 
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #f77f00;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .company-name {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #f77f00;
+        }
+        
+        .document-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* Project Info */
+        .project-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background: #f77f00;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .total-row {
+            background: #2c3e50 !important;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Money format */
+        .money {
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        /* Approval section */
+        .approval-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .approval-box {
+            text-align: center;
+        }
+        
+        .approval-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            margin: 40px auto 0;
+            padding-top: 40px;
+        }
+        
+        /* Print controls */
+        .print-controls {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <!-- Print Controls (hanya tampil di screen) -->
+        <div class="print-controls no-print">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print RAB
+            </button>
+            <button onclick="window.close()" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Tutup
+            </button>
+            <a href="{{ url_for('main.export_rab_pdf', rab_id=rab.id) }}" class="btn btn-danger">
+                <i class="bi bi-file-pdf"></i> Download PDF
+            </a>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">PT. Daniar Furniture Art</div>
+            <div>Jln.Mesjid Kp.Kaum No.20, RT.01/RW.11, Ciparigi, Kota Bogor</div>
+            <div class="document-title">RENCANA ANGGARAN BIAYA (RAB)</div>
+        </div>
+
+        <!-- Project Information -->
+        <div class="project-info">
+            <div class="info-grid">
+                <div><span class="info-label">Kode RAB:</span> {{ rab.kode_rab }}</div>
+                <div><span class="info-label">Status:</span> {{ rab.status }}</div>
+                <div><span class="info-label">Nama Proyek:</span> {{ rab.nama_proyek }}</div>
+                <div><span class="info-label">Tanggal:</span> {{ rab.tanggal.strftime('%d %B %Y') }}</div>
+                <div><span class="info-label">Klien:</span> {{ rab.nama_klien }}</div>
+                <div><span class="info-label">Lokasi:</span> {{ rab.lokasi_proyek or '-' }}</div>
+            </div>
+            {% if rab.deskripsi %}
+            <div style="margin-top: 10px;">
+                <span class="info-label">Deskripsi:</span> {{ rab.deskripsi }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Budget Items Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th width="5%">No</th>
+                    <th width="35%">Item / Deskripsi</th>
+                    <th width="15%">Kategori</th>
+                    <th width="10%">Qty</th>
+                    <th width="10%">Satuan</th>
+                    <th width="12%">Harga Satuan (Rp)</th>
+                    <th width="13%">Total Harga (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <div><strong>{{ item.nama_item }}</strong></div>
+                        {% if item.spesifikasi %}
+                        <small>{{ item.spesifikasi }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.kategori_item }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.satuan }}</td>
+                    <td class="money">{{ item.harga_satuan|currency }}</td>
+                    <td class="money">{{ item.total_harga|currency }}</td>
+                </tr>
+                {% endfor %}
+                
+                <!-- Total Row -->
+                <tr class="total-row">
+                    <td colspan="6" style="text-align: right;"><strong>TOTAL ANGGARAN</strong></td>
+                    <td class="money"><strong>{{ rab.total_anggaran|currency }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Approval Section -->
+        <div class="approval-section">
+            <div class="approval-box">
+                <div>Disiapkan oleh,</div>
+                <div class="approval-line">
+                    {% if current_user %}
+                        {{ current_user.username }}
+                    {% else %}
+                        ___________________
+                    {% endif %}
+                </div>
+            </div>
+            <div class="approval-box">
+                <div>Disetujui oleh,</div>
+                <div class="approval-line">
+                    {% if rab.status == 'APPROVED' %}
+                        Manager
+                    {% else %}
+                        <em>Menunggu persetujuan</em>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Dokumen ini digenerate secara otomatis oleh Sistem Manajemen PT. Daniar Furniture Art</p>
+            <p>© {{ rab.tanggal.strftime('%Y') }} PT. Daniar Furniture Art - All rights reserved</p>
+        </div>
+    </div>
+
+    <script>
+    // Auto print jika parameter print=true
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('print') === 'true') {
+        window.print();
+    }
+    
+    // Auto close setelah print (jika diinginkan)
+    window.onafterprint = function() {
+        // Optional: close window after print
+        // window.close();
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!-- FILE: templates/detail_rab.html -->
+{% extends "base.html" %}
+{% block title %}Detail RAB - {{ rab.nama_proyek }} - PT. Daniar Furniture Art{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0" style="color: var(--dark-bg); font-weight: 700;">
+            📋 Detail RAB - {{ rab.nama_proyek }}
+        </h1>
+        <div class="btn-group">
+            <a href="{{ url_for('main.edit_rab', id=rab.id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a href="{{ url_for('main.export_rab_pdf', rab_id=rab.id) }}" class="btn btn-danger">
+                <i class="bi bi-file-pdf"></i> PDF
+            </a>
+            <a href="{{ url_for('main.kirim_rab_whatsapp', rab_id=rab.id) }}" class="btn btn-success">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+            </a>
+            <a href="{{ url_for('main.print_rab', rab_id=rab.id) }}" class="btn btn-secondary" target="_blank">
+                <i class="bi bi-printer"></i> Print
+            </a>
+        </div>
+    </div>
+
+    <!-- Project Info Card -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Informasi Proyek</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="40%"><strong>Kode RAB:</strong></td>
+                                    <td><span class="badge bg-primary">{{ rab.kode_rab }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nama Proyek:</strong></td>
+                                    <td>{{ rab.nama_proyek }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Klien:</strong></td>
+                                    <td>{{ rab.nama_klien }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Lokasi:</strong></td>
+                                    <td>{{ rab.lokasi_proyek or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="40%"><strong>Tanggal:</strong></td>
+                                    <td>{{ rab.tanggal.strftime('%d %B %Y') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if rab.status == 'DRAFT' %}
+                                            <span class="badge bg-secondary">DRAFT</span>
+                                        {% elif rab.status == 'REVIEW' %}
+                                            <span class="badge bg-warning">REVIEW</span>
+                                        {% elif rab.status == 'APPROVED' %}
+                                            <span class="badge bg-success">APPROVED</span>
+                                        {% elif rab.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">REJECTED</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Anggaran:</strong></td>
+                                    <td><span class="text-success fw-bold">{{ rab.total_anggaran|currency }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    {% if rab.deskripsi %}
+                    <div class="mt-3">
+                        <strong>Deskripsi:</strong>
+                        <p class="mb-0">{{ rab.deskripsi }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.edit_rab', id=rab.id) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Edit RAB
+                        </a>
+                        <a href="{{ url_for('main.export_rab_pdf', rab_id=rab.id) }}" class="btn btn-danger">
+                            <i class="bi bi-file-pdf"></i> Download PDF
+                        </a>
+                        <a href="{{ url_for('main.kirim_rab_whatsapp', rab_id=rab.id) }}" class="btn btn-success">
+                            <i class="bi bi-whatsapp"></i> Share WhatsApp
+                        </a>
+                        <a href="{{ url_for('main.print_rab', rab_id=rab.id) }}" class="btn btn-secondary" target="_blank">
+                            <i class="bi bi-printer"></i> Print RAB
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">Detail Anggaran</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th width="25%">Item</th>
+                            <th width="15%">Kategori</th>
+                            <th width="20%">Spesifikasi</th>
+                            <th width="10%">Qty</th>
+                            <th width="10%">Satuan</th>
+                            <th width="15%">Harga Satuan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <strong>{{ item.nama_item }}</strong>
+                            </td>
+                            <td>{{ item.kategori_item }}</td>
+                            <td>{{ item.spesifikasi or '-' }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.satuan }}</td>
+                            <td class="text-end">{{ item.harga_satuan|currency }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-success">
+                            <td colspan="6" class="text-end"><strong>TOTAL ANGGARAN</strong></td>
+                            <td class="text-end fw-bold">{{ rab.total_anggaran|currency }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('main.rab') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Daftar RAB
+                </a>
+                <div>
+                    <form action="{{ url_for('main.hapus_rab', id=rab.id) }}" method="post" class="d-inline" 
+                          onsubmit="return confirm('Hapus RAB ini? Tindakan ini tidak dapat dibatalkan.')">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Hapus RAB
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

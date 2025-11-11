@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Cash Flow - PT. Daniar Furniture Art</title>
+    <style>
+        /* --- Tema Warna Oranye Dominan --- */
+        :root {
+            --primary-orange: #f77f00;
+            --dark-orange: #d35400;
+            --light-orange: #fdebd0;
+            --dark-bg: #2c3e50;
+            --light-bg: #f8f9fc;
+            --white: #ffffff;
+            --success-green: #00b894;
+            --danger-red: #d63031;
+            --warning-orange: #f39c12;
+            --info-blue: #3498db;
+            --purple: #9b59b6;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            color: var(--dark-bg);
+            background: var(--white);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--primary-orange);
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: var(--primary-orange);
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header h3 {
+            color: var(--dark-bg);
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Info Periode */
+        .info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .info-item {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* Ringkasan Keuangan */
+        .summary {
+            background: var(--light-orange);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary-orange);
+        }
+        .summary h5 {
+            color: var(--primary-orange);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .summary-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .saldo-akhir {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Tabel */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--primary-orange);
+            color: var(--white);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) {
+            background-color: var(--light-bg);
+        }
+        .total-row {
+            background-color: var(--light-orange) !important;
+            font-weight: bold;
+        }
+
+        /* Warna untuk tipe transaksi */
+        .pemasukan {
+            color: var(--success-green);
+            font-weight: 600;
+        }
+        .pengeluaran {
+            color: var(--danger-red);
+            font-weight: 600;
+        }
+
+        /* Badge kategori */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-pemasukan { background-color: var(--success-green); color: white; }
+        .badge-hpp { background-color: var(--danger-red); color: white; }
+        .badge-operasional { background-color: var(--danger-red); color: white; }
+        .badge-lain { background-color: var(--danger-red); color: white; }
+        .badge-kasbon { background-color: var(--purple); color: white; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 11px;
+        }
+
+        /* Tombol (hanya untuk screen) */
+        .no-print {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0 5px;
+        }
+        .btn-primary {
+            background: var(--primary-orange);
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                margin: 0;
+                font-size: 11px;
+            }
+            .header {
+                margin-bottom: 20px;
+            }
+            table {
+                font-size: 10px;
+            }
+            th, td {
+                padding: 6px 8px;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                margin: 10px;
+            }
+            .info {
+                flex-direction: column;
+            }
+            .summary-row {
+                flex-direction: column;
+            }
+            .summary-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>PT. DANIAR FURNITURE ART</h1>
+        <h3>LAPORAN CASH FLOW</h3>
+        <p><strong>Periode:</strong> 
+            {% if start_date %}
+                {{ start_date.strftime('%d/%m/%Y') }} - {{ end_date.strftime('%d/%m/%Y') if end_date else 'Sekarang' }}
+            {% else %}
+                Semua Periode
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Info Cetak -->
+    <div class="info">
+        <div class="info-item">
+            <strong>Tanggal Cetak:</strong> {{ now().strftime('%d/%m/%Y %H:%M') }}
+        </div>
+        <div class="info-item">
+            <strong>Kategori:</strong> {{ kategori_besar or 'Semua Kategori' }}
+        </div>
+        {% if kasbon_state and kasbon_state.total_utang > 0 %}
+        <div class="info-item">
+            <strong>Total Kasbon:</strong> {{ format_currency(kasbon_state.total_utang) }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Ringkasan Keuangan -->
+    <div class="summary">
+        <h5>RINGKASAN KEUANGAN</h5>
+        <div class="summary-row">
+            <div class="summary-item">
+                <p><strong>Total Pemasukan:</strong> <span class="pemasukan">{{ format_currency(pemasukan) }}</span></p>
+                <p><strong>Total HPP:</strong> <span class="pengeluaran">{{ format_currency(hpp) }}</span></p>
+            </div>
+            <div class="summary-item">
+                <p><strong>Total Operasional:</strong> <span class="pengeluaran">{{ format_currency(operasional) }}</span></p>
+                <p><strong>Total Lain-lain:</strong> <span class="pengeluaran">{{ format_currency(lain_lain) }}</span></p>
+            </div>
+        </div>
+        <div class="saldo-akhir">
+            <h4 style="margin: 0; color: white;"><strong>SALDO AKHIR: {{ format_currency(saldo) }}</strong></h4>
+        </div>
+    </div>
+
+    <!-- Tabel Transaksi -->
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>Nama Barang / Jasa</th>
+                <th>Kategori</th>
+                <th>Jumlah</th>
+                <th>Satuan</th>
+                <th>Nilai Total</th>
+                <th>Keterangan</th>
+                <th>Tipe</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if data %}
+                {% for item in data %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.tanggal.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ item.nama_barang }}</td>
+                    <td>
+                        {% set kategori = item.jenis | kategori_besar %}
+                        {% if kategori == 'PEMASUKAN' %}
+                            <span class="badge badge-pemasukan">{{ item.jenis }}</span>
+                        {% elif kategori == 'HPP' %}
+                            <span class="badge badge-hpp">{{ item.jenis }}</span>
+                        {% elif kategori == 'OPERASIONAL' %}
+                            <span class="badge badge-operasional">{{ item.jenis }}</span>
+                        {% elif item.jenis == 'KASBON' or item.jenis == 'BAYAR KASBON' %}
+                            <span class="badge badge-kasbon">{{ item.jenis }}</span>
+                        {% else %}
+                            <span class="badge badge-lain">{{ item.jenis }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.jumlah or '-' }}</td>
+                    <td>{{ item.satuan or '-' }}</td>
+                    <td class="{% if kategori == 'PEMASUKAN' %}pemasukan{% else %}pengeluaran{% endif %}">
+                        {{ format_currency(item.harga) }}
+                    </td>
+                    <td>{{ item.keterangan or '-' }}</td>
+                    <td>
+                        {% if kategori == 'PEMASUKAN' %}
+                            <span class="pemasukan">PEMASUKAN</span>
+                        {% else %}
+                            <span class="pengeluaran">PENGELUARAN</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                <!-- Total Row -->
+                <tr class="total-row">
+                    <td colspan="6" style="text-align: right;"><strong>TOTAL:</strong></td>
+                    <td class="pemasukan"><strong>{{ format_currency(pemasukan) }}</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="6" style="text-align: right;"><strong>TOTAL PENGELUARAN:</strong></td>
+                    <td class="pengeluaran"><strong>{{ format_currency(hpp + operasional + lain_lain) }}</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+                
+            {% else %}
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 20px;">
+                        <strong>Tidak ada data transaksi untuk periode yang dipilih</strong>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Detail Pengeluaran -->
+    {% if data and (hpp > 0 or operasional > 0 or lain_lain > 0) %}
+    <div style="margin-bottom: 30px;">
+        <h5 style="color: var(--primary-orange); margin-bottom: 15px;">DETAIL PENGELUARAN</h5>
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div style="flex: 1; min-width: 200px;">
+                <p><strong>HPP:</strong> <span class="pengeluaran">{{ format_currency(hpp) }}</span></p>
+                <p><strong>Operasional:</strong> <span class="pengeluaran">{{ format_currency(operasional) }}</span></p>
+                <p><strong>Lain-lain:</strong> <span class="pengeluaran">{{ format_currency(lain_lain) }}</span></p>
+            </div>
+            <div style="flex: 1; min-width: 200px; background: var(--light-bg); padding: 15px; border-radius: 8px;">
+                <p><strong>Total Pemasukan:</strong> <span class="pemasukan">{{ format_currency(pemasukan) }}</span></p>
+                <p><strong>Total Pengeluaran:</strong> <span class="pengeluaran">{{ format_currency(hpp + operasional + lain_lain) }}</span></p>
+                <p><strong>Saldo Bersih:</strong> 
+                    <span class="{% if saldo >= 0 %}pemasukan{% else %}pengeluaran{% endif %}">
+                        {{ format_currency(saldo) }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Laporan ini dicetak secara otomatis dari sistem PT. Daniar Furniture Art</strong></p>
+        <p>&copy; {{ now().year }} PT. Daniar Furniture Art. All rights reserved.</p>
+    </div>
+
+    <!-- Tombol Aksi (hanya untuk screen) -->
+    <div class="no-print">
+        <button onclick="window.print()" class="btn btn-primary">
+            🖨️ Cetak Laporan
+        </button>
+        <button onclick="window.close()" class="btn btn-secondary">
+            ❌ Tutup
+        </button>
+    </div>
+
+    <script>
+        // Auto print ketika halaman load (opsional)
+        window.onload = function() {
+            // Uncomment baris berikut untuk auto print
+            // window.print();
+        };
+
+        // Format angka untuk tampilan
+        function formatNumber(num) {
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+    </script>
+</body>
+</html>

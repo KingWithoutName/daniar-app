@@ -1,0 +1,159 @@
+<!-- FILE: templates/buat_rab.html -->
+{% extends "base.html" %}
+{% block title %}Buat RAB Baru - PT. Daniar Furniture Art{% endblock %}
+{% block extra_js %}
+<script>
+function addItemRow(){
+    const itemList = document.getElementById('item-list');
+    const newRow = document.createElement('div');
+    newRow.className = 'row g-3 item-row mb-3';
+    newRow.innerHTML = `
+        <div class="col-md-3">
+            <select name="kategori_item[]" class="form-select" required>
+                <option value="" disabled selected>-- Pilih Kategori --</option>
+                <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Tenaga Kerja">Tenaga Kerja</option>
+                <option value="Biaya Overhead">Biaya Overhead</option>
+                <option value="Transportasi">Transportasi</option>
+                <option value="Lain-lain">Lain-lain</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="nama_item[]" class="form-control" placeholder="Nama Item" required>
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="spesifikasi[]" class="form-control" placeholder="Spesifikasi">
+        </div>
+        <div class="col-md-1">
+            <input type="number" name="quantity[]" class="form-control" placeholder="Qty" step="0.01" value="1" required>
+        </div>
+        <div class="col-md-1">
+            <input type="text" name="satuan[]" class="form-control" placeholder="Satuan" value="unit">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="harga_satuan[]" class="form-control" placeholder="Harga Satuan" step="0.01" required>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItemRow(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    itemList.appendChild(newRow);
+}
+
+function removeItemRow(button){
+    const row = button.closest('.item-row');
+    row.remove();
+}
+
+// Auto-calculate total when harga_satuan or quantity changes
+function setupAutoCalculate() {
+    document.addEventListener('input', function(e) {
+        if (e.target.name === 'harga_satuan[]' || e.target.name === 'quantity[]') {
+            const row = e.target.closest('.item-row');
+            const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+            const hargaSatuan = parseFloat(row.querySelector('input[name="harga_satuan[]"]').value) || 0;
+            const total = quantity * hargaSatuan;
+            
+            // You can display the total in a separate field if needed
+            console.log(`Total: ${total}`); // For debugging
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    addItemRow(); // Tambah row pertama
+    setupAutoCalculate(); // Setup auto calculation
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="text-center mb-4">➕ Buat RAB Baru</h2>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.buat_rab') }}">
+                <!-- Informasi Proyek -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="nama_proyek" class="form-label">Nama Proyek</label>
+                        <input type="text" class="form-control" id="nama_proyek" name="nama_proyek" 
+                               placeholder="contoh: Proyek Furniture Kantor PT. Maju Jaya" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nama_klien" class="form-label">Nama Klien</label>
+                        <input type="text" class="form-control" id="nama_klien" name="nama_klien" 
+                               placeholder="Nama klien atau perusahaan" required>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="lokasi_proyek" class="form-label">Lokasi Proyek</label>
+                        <input type="text" class="form-control" id="lokasi_proyek" name="lokasi_proyek" 
+                               placeholder="Alamat lokasi proyek">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tanggal" class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" id="tanggal" name="tanggal" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="DRAFT">DRAFT</option>
+                            <option value="REVIEW">REVIEW</option>
+                            <option value="APPROVED">APPROVED</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label for="deskripsi" class="form-label">Deskripsi Proyek</label>
+                        <textarea class="form-control" id="deskripsi" name="deskripsi" 
+                                  rows="2" placeholder="Deskripsi lengkap proyek..."></textarea>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Detail Anggaran -->
+                <h5>Detail Anggaran</h5>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-3"><small class="fw-bold">Kategori</small></div>
+                    <div class="col-md-3"><small class="fw-bold">Nama Item</small></div>
+                    <div class="col-md-2"><small class="fw-bold">Spesifikasi</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Qty</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Satuan</small></div>
+                    <div class="col-md-2"><small class="fw-bold">Harga Satuan (Rp)</small></div>
+                    <div class="col-md-1"><small class="fw-bold">Aksi</small></div>
+                </div>
+                
+                <div id="item-list">
+                    <!-- Items akan ditambahkan di sini oleh JavaScript -->
+                </div>
+                
+                <div class="text-end mt-3">
+                    <button type="button" class="btn btn-secondary" onclick="addItemRow()">
+                        <i class="bi bi-plus"></i> Tambah Item
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('main.rab') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Kembali
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Simpan RAB
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

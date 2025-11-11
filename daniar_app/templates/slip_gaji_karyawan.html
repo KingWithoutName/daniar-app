@@ -1,0 +1,300 @@
+<!-- templates/slip_gaji_karyawan.html -->
+{% extends "base.html" %}
+{% block title %}Slip Gaji {{ karyawan.nama }} - PT. Daniar Furniture Art{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0 !important;
+        font-weight: 700;
+        color: #2c3e50;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #f77f00, #d35400);
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .table thead th {
+        background-color: #f8f9fc;
+        border-bottom: 2px solid #f77f00;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .money-format {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+    }
+
+    .employee-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f77f00, #d35400);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #f77f00;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6c757d;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        flex-wrap: nowrap;
+    }
+
+    .action-buttons .btn {
+        border-radius: 6px;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        border: none;
+        color: white;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        border: none;
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #e84393);
+        border: none;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">💰 Slip Gaji - {{ karyawan.nama }}</h1>
+        <div>
+            <a href="{{ url_for('main.slip_gaji') }}" class="btn btn-secondary mr-2">
+                <i class="bi bi-arrow-left"></i> Kembali ke Semua Slip
+            </a>
+            <a href="{{ url_for('main.karyawan') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-people"></i> Data Karyawan
+            </a>
+        </div>
+    </div>
+
+    <!-- Informasi Karyawan -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-person"></i> Informasi Karyawan
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 text-center">
+                            <div class="employee-avatar mx-auto mb-3">
+                                {{ karyawan.nama[0] if karyawan.nama else '?' }}
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td width="40%"><strong>NIK:</strong></td>
+                                            <td>{{ karyawan.nik or '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jabatan:</strong></td>
+                                            <td>{{ karyawan.jabatan }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Divisi:</strong></td>
+                                            <td>{{ karyawan.divisi or '-' }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td width="40%"><strong>Gaji Pokok:</strong></td>
+                                            <td class="text-success fw-bold">{{ karyawan.gaji_pokok|format_rupiah }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tanggal Masuk:</strong></td>
+                                            <td>{{ karyawan.tanggal_masuk.strftime('%d %B %Y') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Status:</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if karyawan.status == 'TETAP' else 'warning' if karyawan.status == 'KONTRAK' else 'info' }}">
+                                                    {{ karyawan.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-graph-up"></i> Statistik Gaji
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="info-card mb-3">
+                        <h6 class="text-muted mb-1">Total Slip Gaji</h6>
+                        <h4 class="mb-0 text-dark">{{ slip_gaji|length }}</h4>
+                    </div>
+                    <div class="info-card mb-3">
+                        <h6 class="text-muted mb-1">Total Dibayarkan</h6>
+                        <h4 class="mb-0 text-success">
+                            {% set total_dibayar = slip_gaji|sum(attribute='total_gaji') %}
+                            {{ total_dibayar|format_rupiah }}
+                        </h4>
+                    </div>
+                    <div class="info-card">
+                        <h6 class="text-muted mb-1">Rata-rata per Bulan</h6>
+                        <h4 class="mb-0 text-info">
+                            {% if slip_gaji %}
+                                {{ (total_dibayar / slip_gaji|length)|format_rupiah }}
+                            {% else %}
+                                Rp 0
+                            {% endif %}
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Riwayat Slip Gaji -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-clock-history"></i> Riwayat Slip Gaji
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            {% if slip_gaji %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="5%">No.</th>
+                            <th width="12%">Periode</th>
+                            <th width="12%">Gaji Pokok</th>
+                            <th width="10%">Tunjangan</th>
+                            <th width="10%">Bonus</th>
+                            <th width="10%">Potongan</th>
+                            <th width="13%">Total Gaji</th>
+                            <th width="10%">Status</th>
+                            <th width="18%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in slip_gaji %}
+                        <tr>
+                            <td class="fw-bold">{{ loop.index }}</td>
+                            <td><span class="badge bg-primary">{{ s.periode }}</span></td>
+                            <td class="money-format text-success">{{ s.gaji_pokok|format_rupiah }}</td>
+                            <td class="money-format text-success">{{ s.tunjangan|format_rupiah }}</td>
+                            <td class="money-format text-success">{{ s.bonus|format_rupiah }}</td>
+                            <td class="money-format text-danger">{{ s.potongan|format_rupiah }}</td>
+                            <td class="money-format fw-bold text-success">{{ s.total_gaji|format_rupiah }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if s.status == 'PAID' else 'secondary' if s.status == 'DRAFT' else 'danger' }}">
+                                    {{ s.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('main.print_slip_gaji', id=s.id) }}" class="btn btn-info btn-sm" title="Print" target="_blank">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.edit_slip_gaji', id=s.id) }}" class="btn btn-warning btn-sm" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ url_for('main.hapus_slip_gaji', id=s.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus slip gaji ini?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-receipt"></i>
+                <h4 class="text-muted">Belum Ada Slip Gaji</h4>
+                <p class="text-muted">Karyawan ini belum memiliki riwayat slip gaji.</p>
+                <a href="{{ url_for('main.slip_gaji') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle"></i> Buat Slip Gaji
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Konfirmasi hapus untuk semua form
+    const deleteForms = document.querySelectorAll('form[action*="hapus_slip_gaji"]');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Apakah Anda yakin ingin menghapus slip gaji ini?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
