@@ -30,9 +30,16 @@ def create_app():
     app = Flask(__name__)
     
     # Configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///daniar.db'
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'secret-key-yang-lebih-aman'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///:memory:'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'secret-key-yang-lebih-aman-dan-panjang'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Session Configuration for Production
+    app.config['SESSION_PERMANENT'] = True
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+    app.config['SESSION_COOKIE_SECURE'] = True  # For HTTPS in production
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     
     # Email Configuration (simplified for deployment)
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
