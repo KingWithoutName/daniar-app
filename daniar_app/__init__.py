@@ -1,7 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate 
-from flask_moment import Moment 
 from flask_login import LoginManager
 from flask_mail import Mail 
 import os
@@ -15,8 +13,6 @@ load_dotenv()
 from .helpers import format_currency, kategori_besar, filter_cashflow, hitung_penyusutan
 
 db = SQLAlchemy()
-migrate = Migrate() 
-moment = Moment() 
 login_manager = LoginManager()
 mail = Mail()
 
@@ -24,7 +20,10 @@ mail = Mail()
 @login_manager.user_loader
 def load_user(user_id):
     from .models import User
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except:
+        return None
 
 def create_app():
     app = Flask(__name__)
@@ -57,8 +56,6 @@ def create_app():
 
     # Initialize extensions (HANYA yang penting)
     db.init_app(app)
-    # HAPUS: migrate.init_app(app, db) - sementara untuk deployment
-    # HAPUS: moment.init_app(app) - sementara untuk deployment  
     login_manager.init_app(app)
     mail.init_app(app)
     
@@ -67,6 +64,22 @@ def create_app():
         try:
             db.create_all()
             print("✅ Database tables created successfully!")
+            
+            # Create default admin user jika tidak ada
+            from .models import User
+            admin_user = User.query.filter_by(username='admin').first()
+            if not admin_user:
+                from werkzeug.security import generate_password_hash
+                admin_user = User(
+                    username='admin',
+                    email='admin@daniarfurniture.com',
+                    password_hash=generate_password_hash('password123'),
+                    role='admin'
+                )
+                db.session.add(admin_user)
+                db.session.commit()
+                print("✅ Default admin user created!")
+                
         except Exception as e:
             print(f"⚠️ Database creation warning: {e}")
     
@@ -86,7 +99,6 @@ def create_app():
     # Template filter untuk format now
     @app.template_filter('now')
     def now_filter(format_string='%d/%m/%Y %H:%M'):
-        from datetime import datetime
         return datetime.now().strftime(format_string)
 
     # Template filter untuk format Rupiah
@@ -179,7 +191,6 @@ def create_app():
         }
         return color_map.get(status, 'secondary')
 
-    return app
     # Context processors
     @app.context_processor
     def inject_now():
