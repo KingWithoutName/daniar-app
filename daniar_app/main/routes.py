@@ -145,269 +145,175 @@ def logout():
 @login_required
 def dashboard():
     """
-    Menampilkan dashboard dengan data keuangan yang dinamis.
+    Menampilkan dashboard dengan data keuangan yang disederhanakan untuk deployment.
     """
-    now = datetime.now()
-
-    # --- DEFINE KATEGORI BARU SESUAI CASHFLOW ---
-    
-    # MODAL AWAL - KATEGORI BARU
-    modal_jenis = [
-        'SETORAN MODAL AWAL', 'TAMBAHAN MODAL', 'INVESTASI PEMILIK'
-    ]
-    
-    # PEMASUKAN OPERASIONAL - DIPISAH DARI MODAL
-    pemasukan_jenis = [
-        'PENJUALAN TUNAI', 'PENERIMAAN PIUTANG', 'PENDAPATAN BUNGA', 
-        'PENGEMBALIAN PAJAK', 'PENERIMAAN TUNAI LAINNYA', 'BAYAR KASBON'
-    ]
-    
-    # PINJAMAN/FUNDING - DIPISAH DARI MODAL
-    funding_jenis = [
-        'PINJAMAN BANK', 'CASH INJECTION', 'DANA PINJAMAN', 'FUNDING INVESTOR'
-    ]
-    
-    # HPP - TANPA "LAINNYA"
-    hpp_jenis = [
-        'BIAYA PRODUK / LAYANAN LANGSUNG', 'PAJAK PENGGAJIAN - LANGSUNG',
-        'GAJI - TKL', 'PERSEDIAAN'
-    ]
-    
-    # OPERASIONAL - TANPA "LAINNYA"  
-    operasional_jenis = [
-        'GAJI KARYAWAN', 'IKLAN', 'BIAYA BANK', 'PELATIHAN', 'ASURANSI',
-        'INTERNET', 'LISENSI / IZIN', 'MAKANAN / HIBURAN', 'PERALATAN KANTOR',
-        'PAJAK GAJI', 'ONGKOS KIRIM', 'PENCETAKAN', 'KONSULTAN', 'OKUPANSI',
-        'BIAYA SEWA', 'SUBCONTRACTOR', 'TELEPON', 'TRANSPORTASI', 'PERJALANAN DINAS',
-        'BIAYA LISTRIK', 'PENGEMBANGAN WEB', 'DOMAIN WEB DAN HOSTING', 'BIAYA AIR',
-        'BIAYA SUBSCRIPTION', 'PAJAK PEMBELIAN'
-    ]
-    
-    # PENGELUARAN LAIN-LAIN - HANYA DI SINI ADA "LAINNYA"
-    lain_jenis = [
-        'PENGELUARAN TUNAI UNTUK PEMILIK', 'KASBON', 'BEBAN BUNGA',
-        'BEBAN PAJAK PENGHASILAN', 'BIAYA ADMIN', 'LAINNYA', 'KEWAJIBAN'
-    ]
-
-    # --- PERIODE BULAN INI ---
-    start_of_month = datetime(now.year, now.month, 1)
-    if now.month == 12:
-        end_of_month = datetime(now.year + 1, 1, 1)
-    else:
-        end_of_month = datetime(now.year, now.month + 1, 1)
-
-    # --- AMBIL SEMUA DATA CASHFLOW BULAN INI ---
-    cashflows_bulan_ini = Cashflow.query.filter(
-        Cashflow.tanggal >= start_of_month,
-        Cashflow.tanggal < end_of_month
-    ).all()
-
-    print("="*50)
-    print("DEBUG - SEMUA DATA CASHFLOW BULAN INI")
-    print(f"Periode: {start_of_month.date()} sampai {end_of_month.date()}")
-    print(f"Jumlah transaksi: {len(cashflows_bulan_ini)}")
-    
-    # --- HITUNG MANUAL DARI DATA YANG SUDAH DIFILTER ---
-    modal_bulan = 0
-    pemasukan_operasional_bulan = 0  # Nama variable yang konsisten
-    funding_bulan = 0
-    hpp_bulan = 0
-    operasional_bulan = 0
-    lain_bulan = 0
-    
-    for cf in cashflows_bulan_ini:
-        print(f"  - {cf.tanggal} | {cf.jenis} | Rp {cf.harga:,.0f}")
-        
-        if cf.jenis in modal_jenis:
-            modal_bulan += cf.harga
-            print(f"    → MODAL")
-        elif cf.jenis in pemasukan_jenis:
-            pemasukan_operasional_bulan += cf.harga
-            print(f"    → PEMASUKAN OPERASIONAL")
-        elif cf.jenis in funding_jenis:
-            funding_bulan += cf.harga
-            print(f"    → FUNDING")
-        elif cf.jenis in hpp_jenis:
-            hpp_bulan += cf.harga
-            print(f"    → HPP")
-        elif cf.jenis in operasional_jenis:
-            operasional_bulan += cf.harga
-            print(f"    → OPERASIONAL")
-        elif cf.jenis in lain_jenis:
-            lain_bulan += cf.harga
-            print(f"    → LAIN-LAIN")
-        else:
-            # Untuk kompatibilitas data lama
-            if cf.jenis in ['PINJAMAN / CASH INJECTION', 'FUNDING']:
-                funding_bulan += cf.harga
-                print(f"    → FUNDING (Kategori Lama)")
-            else:
-                # Jika tidak masuk kategori manapun, anggap sebagai pengeluaran lain
-                print(f"    ⚠️  JENIS TIDAK DIKENAL: {cf.jenis}")
-                lain_bulan += cf.harga
-
-    # --- HITUNG TOTAL PENGELUARAN ---
-    total_pengeluaran_bulan = hpp_bulan + operasional_bulan + lain_bulan
-
-    # --- HITUNG TOTAL PEMASUKAN (TERMASUK MODAL & FUNDING) ---
-    total_pemasukan_bulan = modal_bulan + pemasukan_operasional_bulan + funding_bulan
-
-    # --- HITUNG SALDO BULAN INI ---
-    saldo_bulan = total_pemasukan_bulan - total_pengeluaran_bulan
-
-    # --- DEBUG HASIL PERHITUNGAN ---
-    print("="*50)
-    print("HASIL PERHITUNGAN MANUAL:")
-    print(f"Modal: Rp {modal_bulan:,.0f}")
-    print(f"Pemasukan Operasional: Rp {pemasukan_operasional_bulan:,.0f}")
-    print(f"Funding: Rp {funding_bulan:,.0f}")
-    print(f"Total Pemasukan: Rp {total_pemasukan_bulan:,.0f}")
-    print(f"HPP: Rp {hpp_bulan:,.0f}")
-    print(f"Operasional: Rp {operasional_bulan:,.0f}")
-    print(f"Lain-lain: Rp {lain_bulan:,.0f}")
-    print(f"Total Pengeluaran: Rp {total_pengeluaran_bulan:,.0f}")
-    print(f"Saldo Bulan Ini: Rp {saldo_bulan:,.0f}")
-
-    # --- HITUNG TOTAL KAS (SELURUH WAKTU) ---
-    semua_cashflows = Cashflow.query.all()
-    
-    total_modal = 0
-    total_pemasukan_operasional = 0
-    total_funding = 0
-    total_pengeluaran_semua = 0
-    
-    for cf in semua_cashflows:
-        if cf.jenis in modal_jenis:
-            total_modal += cf.harga
-        elif cf.jenis in pemasukan_jenis:
-            total_pemasukan_operasional += cf.harga
-        elif cf.jenis in funding_jenis or cf.jenis in ['PINJAMAN / CASH INJECTION', 'FUNDING']:
-            total_funding += cf.harga
-        elif cf.jenis in hpp_jenis + operasional_jenis + lain_jenis:
-            total_pengeluaran_semua += cf.harga
-    
-    total_kas = (total_modal + total_pemasukan_operasional + total_funding) - total_pengeluaran_semua
-
-    # --- STATISTIK LAINNYA ---
-    total_nilai_aset_tetap = 0
     try:
-        aset_tetap_list = AsetTetap.query.all()
-        for aset in aset_tetap_list:
-            try:
-                _, nilai_buku = hitung_penyusutan(aset)
-                total_nilai_aset_tetap += nilai_buku
-            except Exception as e:
-                print(f"Error hitung penyusutan aset {aset.id}: {e}")
-                continue
-    except Exception as e:
-        print(f"Error query aset: {e}")
-    
-    total_karyawan = Karyawan.query.count()
-    total_faktur = Faktur.query.count()
-    
-    kasbon_state = KasbonState.query.first()
-    total_utang_kasbon = kasbon_state.total_utang if kasbon_state else 0.0
+        now = datetime.now()
 
-    # --- DATA UNTUK CHART ---
-    chart_labels = ['Modal', 'Pemasukan', 'Funding', 'HPP', 'Operasional', 'Lain-lain']
-    chart_data = [
-        float(modal_bulan),
-        float(pemasukan_operasional_bulan),
-        float(funding_bulan),
-        float(hpp_bulan), 
-        float(operasional_bulan),
-        float(lain_bulan)
-    ]
+        # --- KATEGORI SEDERHANA ---
+        pemasukan_jenis = ['PENJUALAN TUNAI', 'PENERIMAAN PIUTANG', 'PENDAPATAN BUNGA']
+        pengeluaran_jenis = ['GAJI KARYAWAN', 'BIAYA PRODUK', 'BIAYA OPERASIONAL']
 
-    # --- DATA TREND 6 BULAN TERAKHIR ---
-    bulan_terakhir = []
-    pemasukan_trend = []
-    pengeluaran_trend = []
-    
-    for i in range(5, -1, -1):
-        bulan = now.month - i
-        tahun = now.year
-        if bulan <= 0:
-            bulan += 12
-            tahun -= 1
-        
-        start_bulan = datetime(tahun, bulan, 1)
-        if bulan == 12:
-            end_bulan = datetime(tahun + 1, 1, 1)
+        # --- PERIODE BULAN INI ---
+        start_of_month = datetime(now.year, now.month, 1)
+        if now.month == 12:
+            end_of_month = datetime(now.year + 1, 1, 1)
         else:
-            end_bulan = datetime(tahun, bulan + 1, 1)
-        
-        # Hitung manual untuk trend
-        cashflows_trend = Cashflow.query.filter(
-            Cashflow.tanggal >= start_bulan,
-            Cashflow.tanggal < end_bulan
-        ).all()
-        
-        modal_trend_bulan = 0
-        pemasukan_trend_bulan = 0
-        funding_trend_bulan = 0
-        pengeluaran_trend_bulan = 0
-        
-        for cf in cashflows_trend:
-            if cf.jenis in modal_jenis:
-                modal_trend_bulan += cf.harga
-            elif cf.jenis in pemasukan_jenis:
-                pemasukan_trend_bulan += cf.harga
-            elif cf.jenis in funding_jenis or cf.jenis in ['PINJAMAN / CASH INJECTION', 'FUNDING']:
-                funding_trend_bulan += cf.harga
-            elif cf.jenis in hpp_jenis + operasional_jenis + lain_jenis:
-                pengeluaran_trend_bulan += cf.harga
-        
-        total_pemasukan_trend = modal_trend_bulan + pemasukan_trend_bulan + funding_trend_bulan
-        
-        nama_bulan = start_bulan.strftime('%b %Y')
-        bulan_terakhir.append(nama_bulan)
-        pemasukan_trend.append(float(total_pemasukan_trend))
-        pengeluaran_trend.append(float(pengeluaran_trend_bulan))
+            end_of_month = datetime(now.year, now.month + 1, 1)
 
-    # --- AKTIVITAS TERKINI ---
-    recent_cashflows = Cashflow.query.order_by(Cashflow.tanggal.desc(), Cashflow.id.desc()).limit(5).all()
+        # --- AMBIL DATA CASHFLOW BULAN INI (DENGAN ERROR HANDLING) ---
+        try:
+            cashflows_bulan_ini = Cashflow.query.filter(
+                Cashflow.tanggal >= start_of_month,
+                Cashflow.tanggal < end_of_month
+            ).all()
+        except Exception as e:
+            print(f"Error query cashflow: {e}")
+            cashflows_bulan_ini = []
 
-    # --- FINAL DEBUG ---
-    print("="*50)
-    print("FINAL DASHBOARD DATA:")
-    print(f"Total Kas: Rp {total_kas:,.0f}")
-    print(f"Modal Bulan Ini: Rp {modal_bulan:,.0f}")
-    print(f"Pemasukan Operasional Bulan Ini: Rp {pemasukan_operasional_bulan:,.0f}")
-    print(f"Funding Bulan Ini: Rp {funding_bulan:,.0f}")
-    print(f"Total Pemasukan Bulan Ini: Rp {total_pemasukan_bulan:,.0f}")
-    print(f"Pengeluaran Bulan Ini: Rp {total_pengeluaran_bulan:,.0f}")
-    print(f"Detail Pengeluaran:")
-    print(f"  - HPP: Rp {hpp_bulan:,.0f}")
-    print(f"  - Operasional: Rp {operasional_bulan:,.0f}")
-    print(f"  - Lain-lain: Rp {lain_bulan:,.0f}")
-    print("="*50)
+        # --- HITUNG MANUAL DARI DATA ---
+        pemasukan_bulan = 0
+        pengeluaran_bulan = 0
+        
+        for cf in cashflows_bulan_ini:
+            if cf.jenis in pemasukan_jenis:
+                pemasukan_bulan += cf.harga
+            elif cf.jenis in pengeluaran_jenis:
+                pengeluaran_bulan += cf.harga
+            else:
+                # Default: anggap sebagai pengeluaran
+                pengeluaran_bulan += cf.harga
 
-    return render_template(
-        "dashboard.html",
-        total_kas=total_kas,
-        total_pemasukan_bulan=total_pemasukan_bulan,
-        total_pengeluaran_bulan=total_pengeluaran_bulan,
-        total_nilai_aset_tetap=total_nilai_aset_tetap,
-        total_karyawan=total_karyawan,
-        total_faktur=total_faktur,
-        total_utang_kasbon=total_utang_kasbon,
-        recent_cashflows=recent_cashflows,
-        # Data breakdown untuk detail - PASTIKAN SEMUA VARIABLE INI DIKIRIM
-        modal_bulan=modal_bulan,
-        pemasukan_operasional_bulan=pemasukan_operasional_bulan,  # Variable yang benar
-        funding_bulan=funding_bulan,
-        hpp_bulan=hpp_bulan,
-        operasional_bulan=operasional_bulan,
-        lain_bulan=lain_bulan,
-        # Data untuk chart detail
-        chart_labels=chart_labels,
-        chart_data=chart_data,
-        # Data untuk trend chart
-        bulan_terakhir=bulan_terakhir,
-        pemasukan_trend=pemasukan_trend,
-        pengeluaran_trend=pengeluaran_trend
-    )
+        # --- HITUNG SALDO BULAN INI ---
+        saldo_bulan = pemasukan_bulan - pengeluaran_bulan
+
+        # --- HITUNG TOTAL KAS (SEDERHANA) ---
+        try:
+            semua_pemasukan = Cashflow.query.filter(Cashflow.jenis.in_(pemasukan_jenis)).all()
+            semua_pengeluaran = Cashflow.query.filter(Cashflow.jenis.in_(pengeluaran_jenis)).all()
+            
+            total_pemasukan = sum(cf.harga for cf in semua_pemasukan)
+            total_pengeluaran = sum(cf.harga for cf in semua_pengeluaran)
+            total_kas = total_pemasukan - total_pengeluaran
+        except Exception as e:
+            print(f"Error hitung total kas: {e}")
+            total_kas = 0
+
+        # --- STATISTIK LAINNYA (DENGAN ERROR HANDLING) ---
+        try:
+            total_karyawan = Karyawan.query.count()
+        except:
+            total_karyawan = 0
+            
+        try:
+            total_faktur = Faktur.query.count()
+        except:
+            total_faktur = 0
+            
+        try:
+            total_nilai_aset_tetap = 0
+            aset_tetap_list = AsetTetap.query.all()
+            for aset in aset_tetap_list:
+                total_nilai_aset_tetap += aset.harga_perolehan or 0
+        except:
+            total_nilai_aset_tetap = 0
+            
+        try:
+            kasbon_state = KasbonState.query.first()
+            total_utang_kasbon = kasbon_state.total_utang if kasbon_state else 0.0
+        except:
+            total_utang_kasbon = 0
+
+        # --- DATA UNTUK CHART (SEDERHANA) ---
+        chart_labels = ['Pemasukan', 'Pengeluaran']
+        chart_data = [float(pemasukan_bulan), float(pengeluaran_bulan)]
+
+        # --- DATA TREND 3 BULAN TERAKHIR (SEDERHANA) ---
+        bulan_terakhir = []
+        pemasukan_trend = []
+        pengeluaran_trend = []
+        
+        for i in range(2, -1, -1):  # 3 bulan terakhir
+            bulan = now.month - i
+            tahun = now.year
+            if bulan <= 0:
+                bulan += 12
+                tahun -= 1
+            
+            start_bulan = datetime(tahun, bulan, 1)
+            if bulan == 12:
+                end_bulan = datetime(tahun + 1, 1, 1)
+            else:
+                end_bulan = datetime(tahun, bulan + 1, 1)
+            
+            try:
+                # Hitung pemasukan/pengeluaran per bulan
+                pemasukan_bulan_trend = Cashflow.query.filter(
+                    Cashflow.tanggal >= start_bulan,
+                    Cashflow.tanggal < end_bulan,
+                    Cashflow.jenis.in_(pemasukan_jenis)
+                ).with_entities(func.sum(Cashflow.harga)).scalar() or 0
+                
+                pengeluaran_bulan_trend = Cashflow.query.filter(
+                    Cashflow.tanggal >= start_bulan,
+                    Cashflow.tanggal < end_bulan, 
+                    Cashflow.jenis.in_(pengeluaran_jenis)
+                ).with_entities(func.sum(Cashflow.harga)).scalar() or 0
+                
+            except Exception as e:
+                print(f"Error hitung trend bulan {bulan}: {e}")
+                pemasukan_bulan_trend = 0
+                pengeluaran_bulan_trend = 0
+            
+            nama_bulan = start_bulan.strftime('%b %Y')
+            bulan_terakhir.append(nama_bulan)
+            pemasukan_trend.append(float(pemasukan_bulan_trend))
+            pengeluaran_trend.append(float(pengeluaran_bulan_trend))
+
+        # --- AKTIVITAS TERKINI (DENGAN ERROR HANDLING) ---
+        try:
+            recent_cashflows = Cashflow.query.order_by(Cashflow.tanggal.desc()).limit(5).all()
+        except:
+            recent_cashflows = []
+
+        return render_template(
+            "dashboard.html",
+            total_kas=total_kas,
+            total_pemasukan_bulan=pemasukan_bulan,
+            total_pengeluaran_bulan=pengeluaran_bulan,
+            total_nilai_aset_tetap=total_nilai_aset_tetap,
+            total_karyawan=total_karyawan,
+            total_faktur=total_faktur,
+            total_utang_kasbon=total_utang_kasbon,
+            recent_cashflows=recent_cashflows,
+            # Data untuk chart
+            chart_labels=chart_labels,
+            chart_data=chart_data,
+            # Data untuk trend chart
+            bulan_terakhir=bulan_terakhir,
+            pemasukan_trend=pemasukan_trend,
+            pengeluaran_trend=pengeluaran_trend
+        )
+
+    except Exception as e:
+        print(f"ERROR DI DASHBOARD: {e}")
+        # Fallback: tampilkan dashboard kosong jika ada error
+        return render_template(
+            "dashboard.html",
+            total_kas=0,
+            total_pemasukan_bulan=0,
+            total_pengeluaran_bulan=0,
+            total_nilai_aset_tetap=0,
+            total_karyawan=0,
+            total_faktur=0,
+            total_utang_kasbon=0,
+            recent_cashflows=[],
+            chart_labels=['Pemasukan', 'Pengeluaran'],
+            chart_data=[0, 0],
+            bulan_terakhir=['Bulan 1', 'Bulan 2', 'Bulan 3'],
+            pemasukan_trend=[0, 0, 0],
+            pengeluaran_trend=[0, 0, 0]
+        )
 
 # -------------------- CASHFLOW --------------------
 @main_bp.route('/cashflow', methods=['GET','POST'])
