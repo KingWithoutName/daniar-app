@@ -34,13 +34,12 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'secret-key-yang-lebih-aman'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Email Configuration
+    # Email Configuration (simplified for deployment)
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', True)
-    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', False)
     app.config['MAIL_USERNAME'] = os.environ.get('GMAIL_USERNAME', 'daniarfurnitureart@gmail.com')
-    app.config['MAIL_PASSWORD'] = os.environ.get('GMAIL_APP_PASSWORD', 'jerhrsumnqdmmhmk')
+    app.config['MAIL_PASSWORD'] = os.environ.get('GMAIL_APP_PASSWORD', '')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'daniarfurnitureart@gmail.com')
     
     # Company Info
@@ -49,12 +48,20 @@ def create_app():
     app.config['COMPANY_PHONE'] = os.environ.get('COMPANY_PHONE', '+6285777653187')
     app.config['COMPANY_ADDRESS'] = os.environ.get('COMPANY_ADDRESS', 'Jln.Mesjid Kp.Kaum No.20, RT.01/RW.11, Ciparigi, Kota Bogor')
 
-    # Initialize extensions
+    # Initialize extensions (HANYA yang penting)
     db.init_app(app)
-    migrate.init_app(app, db)
-    moment.init_app(app) 
+    # HAPUS: migrate.init_app(app, db) - sementara untuk deployment
+    # HAPUS: moment.init_app(app) - sementara untuk deployment  
     login_manager.init_app(app)
     mail.init_app(app)
+    
+    # Auto-create database tables
+    with app.app_context():
+        try:
+            db.create_all()
+            print("✅ Database tables created successfully!")
+        except Exception as e:
+            print(f"⚠️ Database creation warning: {e}")
     
     # Login manager configuration
     login_manager.login_view = 'main.login'
@@ -72,6 +79,7 @@ def create_app():
     # Template filter untuk format now
     @app.template_filter('now')
     def now_filter(format_string='%d/%m/%Y %H:%M'):
+        from datetime import datetime
         return datetime.now().strftime(format_string)
 
     # Template filter untuk format Rupiah
@@ -164,6 +172,7 @@ def create_app():
         }
         return color_map.get(status, 'secondary')
 
+    return app
     # Context processors
     @app.context_processor
     def inject_now():
