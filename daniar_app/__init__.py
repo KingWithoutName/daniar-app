@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+# from flask_migrate import Migrate #
 from flask_moment import Moment
 from flask_login import LoginManager
 from flask_mail import Mail 
@@ -15,7 +15,7 @@ load_dotenv()
 from .helpers import format_currency, kategori_besar, filter_cashflow, hitung_penyusutan
 
 db = SQLAlchemy()
-migrate = Migrate()
+# migrate = Migrate() #
 moment = Moment()
 login_manager = LoginManager()
 mail = Mail()
